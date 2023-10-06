@@ -1,0 +1,249 @@
+﻿@page "/agency/uploaded_docs";
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using Syncfusion.Blazor.Data
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject HttpClient Http;
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Popups
+@using Microsoft.JSInterop
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+@using System.Text;
+@using Syncfusion.Pdf;
+@using Syncfusion.Pdf.Graphics;
+@using Syncfusion.Drawing;
+@using Syncfusion.DocIO.DLS;
+@using Syncfusion.DocIORenderer;
+@inject GaHealthcareNurses.Client.Helper.ExportPdfService exportPDF
+
+<div class="top-entry-area client_dashboard">
+    <div class="tab-content tab-content-info">
+        @if (hiredNurses.Count == 0)
+        {
+            <div class="alert alert-danger" role="alert">
+                <p>There is no hired nurse (yet) for this agency, so documents cannot be downloaded.</p>
+            </div>
+        }
+        <div id="documentsTab" class="tab-pane fade active in">
+            <div class="req_service text-right stusagbox nursebox-export">
+                <div tabindex="0" class="text-left d-flex align-items-center nurse-dropdown">
+                    <SfDropDownList TValue="string" TItem="GetHiredNursesResponseModel" AllowFiltering="true" DataSource="@hiredNurses" Placeholder="Select a nurse">
+                        <DropDownListEvents TItem="GetHiredNursesResponseModel" TValue="string" ValueChange="OnNurseChange"></DropDownListEvents>
+                        <DropDownListFieldSettings Text="Name" Value="Id"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                </div>
+                <div>
+                    <SfButton @onclick="GeneratePDF">Export To PDF</SfButton>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content tab-content-info">
+            <SfListBox TValue="string[]" DataSource="@docs.Distinct().ToList()" TItem="document" @ref="docsObj">
+                <ListBoxEvents TValue="string[]" ValueChange="ValueChangedHandler" TItem="document"></ListBoxEvents>
+                <ListBoxFieldSettings Text="Text" Value="Id" />
+                <ListBoxSelectionSettings ShowCheckbox="true" ShowSelectAll="true"></ListBoxSelectionSettings>
+            </SfListBox>
+        </div>
+    </div>
+</div>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code{
+    SfListBox<string[], document> docsObj;
+    public List<document> docs = new List<document>();
+    public string[] selectedItems;
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    List<GetHiredNursesResponseModel> hiredNurses = new List<GetHiredNursesResponseModel>();
+    List<JobApplyForAgency> hiredAgencies = new List<JobApplyForAgency>();
+    private ResizeDirection[] dialogResizeDirections { get; set; } = new ResizeDirection[] { ResizeDirection.All };
+    System.Uri uri;
+    string agencyId = string.Empty;
+    bool isLoading = false;
+    public class document
+    {
+        public string Text { get; set; }
+        public string Id { get; set; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData != null)
+            {
+                if (!string.IsNullOrEmpty(agencyId))
+                {
+                    if (agencyData.UserDetails.UserId != agencyId)
+                    {
+                        navigation.NavigateTo("agency/sign-in");
+                    }
+                }
+
+                var hiredNursesResponseMessage = await Http.GetAsync(wsp.Path + $"JobApplyForEmployer/GetHiredNurses?employerId={agencyData.UserDetails.UserId}");
+                var hiredNursesResponse = hiredNursesResponseMessage.Content.ReadAsStringAsync().Result;
+                hiredNurses = (JsonConvert.DeserializeObject<Response<List<GetHiredNursesResponseModel>>>(hiredNursesResponse)).Data;
+                StateHasChanged();
+                //var hiredAgenciesResponseMessage = await Http.GetAsync(wsp.Path + $"JobApplyForEmployer/GetByStatusId?employerId={agencyData.UserDetails.UserId}&statusId={13}");
+                //var hiredAgenciesResponse = hiredAgenciesResponseMessage.Content.ReadAsStringAsync().Result;
+                //hiredAgencies = (JsonConvert.DeserializeObject<Response<List<JobApplyForAgency>>>(hiredAgenciesResponse)).Data;
+
+                @*@foreach (var agency in hiredAgencies)
+                    {
+                        var responseMessage = await Http.GetAsync(wsp.Path + $"JobApply/GetByJobIdAndStatusId?jobId={agency.JobId}&statusId=1");
+                        var response = responseMessage.Content.ReadAsStringAsync().Result;
+                        var result = (JsonConvert.DeserializeObject<Response<List<JobApply>>>(response)).Data;
+                        if (result.Count != 0)
+                        {
+                            nurses.Add(result[0].Nurse);
+                        }
+                    }*@
+            }
+            else
+            {
+                navigation.NavigateTo("agency/sign-in");
+            }
+        }
+    }
+
+    public async Task OnNurseChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<string, GetHiredNursesResponseModel> args)
+    {
+        await docsObj.RemoveItem(docs);
+        docs.Clear();
+        if (docs.Count == 0)
+        {
+            var responseMessage = await Http.GetAsync(wsp.Path + $"UploadDocuments/GetById?id={args.ItemData.Id}");
+            var response = responseMessage.Content.ReadAsStringAsync().Result;
+            var nurse = (JsonConvert.DeserializeObject<Response<UploadDocuments>>(response)).Data;
+
+            docs = nurse.GetType()
+                         .GetProperties()
+                         .Select(p =>
+                         {
+                             var value = p.PropertyType == typeof(string) ? p.GetValue(nurse, null) : null;
+                             var documentName = AddSpacesToSentence(p.Name);
+                             return new document
+                             {
+                                 Id = value == null ? null : value.ToString(),
+                                 Text = documentName
+                             };
+                         })
+                  .GroupBy(x => x.Id).Select(x => x.First()).ToList();
+            docs.RemoveAll((x) => x.Id == null || x.Text == "Id");
+            await docsObj.AddItem(docs);
+        }
+    }
+
+    private string AddSpacesToSentence(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return "";
+        StringBuilder newText = new StringBuilder(text.Length * 2);
+        newText.Append(text[0]);
+        for (int i = 1; i < text.Length; i++)
+        {
+            if (char.IsUpper(text[i]) && text[i - 1] != ' ')
+                newText.Append(' ');
+            newText.Append(text[i]);
+        }
+        return newText.ToString();
+    }
+
+    private void ValueChangedHandler(ListBoxChangeEventArgs<string[], document> args)
+    {
+        selectedItems = args.Value;
+    }
+
+    public async void GeneratePDF()
+    {
+        if (selectedItems == null || selectedItems.ToList().Count == 0)
+        {
+            toastService.ShowWarning("Please select at least one document");
+            return;
+        }
+
+        isLoading = true;
+        for (int i = 0; i < selectedItems.Length; i++)
+        {
+            string document = selectedItems[i];
+            int index = document.LastIndexOf(".");
+            string extension = document.Substring(index + 1);
+            PdfDocument pdfDocument = new PdfDocument();
+
+            //Add a page to the document
+            PdfPage page = pdfDocument.Pages.Add();
+
+            //Create PDF graphics for the page
+            PdfGraphics graphics = page.Graphics;
+
+            //Set the standard font
+            PdfFont font = new PdfStandardFont(PdfFontFamily.Helvetica, 20);
+            var response = await Http.GetAsync(document);
+            MemoryStream ms = new MemoryStream(await response.Content.ReadAsByteArrayAsync());
+
+            var documentName = docs.FirstOrDefault(x => x.Id == selectedItems[i]).Text;
+
+            if (extension == "doc")
+            {
+                //Loads file stream into Word document
+                WordDocument wordDocument = new WordDocument(ms, Syncfusion.DocIO.FormatType.Automatic);
+                //Instantiation of DocIORenderer for Word to PDF conversion
+                DocIORenderer render = new DocIORenderer();
+                //Converts Word document into PDF document
+                pdfDocument = render.ConvertToPDF(wordDocument);
+                //Releases all resources used by the Word document and DocIO Renderer objects
+                render.Dispose();
+                wordDocument.Dispose();
+                //Saving the PDF to the MemoryStream
+                MemoryStream stream = new MemoryStream();
+
+                pdfDocument.Save(stream);
+
+                pdfDocument.Close(true);
+
+                //Download the PDF in the browser.
+                await exportPDF.SaveAs($"{documentName}.pdf", stream.ToArray());
+            }
+            else if (extension == "pdf")
+            {
+
+                //Download the PDF in the browser.
+                await exportPDF.SaveAs($"{documentName}.pdf", ms.ToArray());
+            }
+            else
+            {
+                PdfImage img = PdfImage.FromStream(ms);
+
+                //Draw the text
+                graphics.DrawImage(img, new PointF(26, 27), new SizeF(300, 400));
+                //Saving the PDF to the MemoryStream
+                MemoryStream stream = new MemoryStream();
+
+                pdfDocument.Save(stream);
+
+                pdfDocument.Close(true);
+
+                //Download the PDF in the browser.
+                await exportPDF.SaveAs($"{documentName}.pdf", stream.ToArray());
+                await Task.Delay(3000);
+            }
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+}
+
+
+
+

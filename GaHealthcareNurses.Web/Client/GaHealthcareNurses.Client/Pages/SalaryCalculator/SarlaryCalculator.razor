@@ -1,0 +1,220 @@
+﻿@page "/salary-calculator"
+@layout SecondaryLayout
+@inject HttpClient HttpClient
+@inject IToastService toastService
+@using System.Net
+@using GaHealthcareNurses.Entity.ViewModels
+@using Microsoft.AspNetCore.Components.Forms
+@using Newtonsoft.Json
+@using GaHealthcareNurses.Client.NewFolder
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@using System.Collections.ObjectModel
+@using System.Text
+@using Syncfusion.Blazor.Spinner
+@using GaHealthcareNurses.Entity.Models
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+
+<GaHealthcareNurses.Client.Shared.EducationHeader />
+
+<EditForm Model="blsSalaryDetailViewModel" OnValidSubmit="CalculateBlsSalarySubmit">
+    <DataAnnotationsValidator />
+    <div class="senior-engineer mb_25">
+        <div class="container">
+            <div class="text-center sc_head">
+                <h2>US Healthcare Salary Calculator</h2>
+                <div>
+                    <strong>Use our salary calculator to access data and accurate pay ranges- for your specialization, job tittle and location.</strong>
+                </div>
+                <b />
+                <div><strong>Enter the job title and city below to reveal location-specific salary ranges and national comparisons.</strong></div>
+            </div>
+            <div class="search_bx">
+                <div class="search-inner-b">
+                    <div class="search-bar">
+                        <div class="in_put">
+                            <i class="fas fa-search"></i>
+                            <SfComboBox @ref="sfOccupationComboBoxObj" TValue="double?" CssClass="e-caret-hide shadow-none rounded-0" OnInput="SearchBlsOccupationsAsync" TItem="BlsSalaryDetailsViewModel" PopupHeight="230px" Placeholder="Search Occupation" @bind-Value="blsSalaryDetailViewModel.OccupationCode" DataSource="@BlsOccupationsList">
+                                <ComboBoxTemplates TItem="BlsSalaryDetailsViewModel">
+                                    <NoRecordsTemplate>
+                                        @if (isOccupationsLoading)
+                                        {
+                                            <SfSpinner Size="20" Type="SpinnerType.Bootstrap4" @bind-Visible="isOccupationsLoading"></SfSpinner>
+                                        }
+                                        else
+                                        {
+                                            <span>No Record Found</span>
+                                        }
+                                    </NoRecordsTemplate>
+                                </ComboBoxTemplates>
+                                <ComboBoxEvents ValueChange="OnBlsOccupationchange" TValue="double?" TItem="BlsSalaryDetailsViewModel" />
+                                <ComboBoxFieldSettings Text="OccupationName" Value="OccupationCode" />
+                            </SfComboBox>
+                            <ValidationMessage For="@(() => blsSalaryDetailViewModel.OccupationCode)"></ValidationMessage>
+                        </div>
+                        <span class="city-outer w-100">
+                            <SfComboBox EnableVirtualization=true TValue="double?" OnInput="SearchBlsAreaNamesAsync" CssClass="search-city" TItem="BlsAreaZipcode" AllowFiltering="true" Placeholder="Search City" PopupHeight="230px" @bind-Value="blsSalaryDetailViewModel.AreaCode" DataSource="@BlsAreaNamesList">
+                                <ComboBoxTemplates TItem="BlsAreaZipcode">
+                                    <NoRecordsTemplate>
+                                        @if (isAreaNamesLoading)
+                                        {
+                                            <SfSpinner Size="20" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+                                        }
+                                        else
+                                        {
+                                            <span>No Record Found</span>
+                                        }
+                                    </NoRecordsTemplate>
+                                </ComboBoxTemplates>
+                                <ComboBoxEvents ValueChange="OnBlsAreachange" OnValueSelect="OnBlsAreaSelect" TValue="double?" TItem="BlsAreaZipcode" />
+                                <ComboBoxFieldSettings Text="BlsAreaName" Value="BlsAreaCode" />
+                            </SfComboBox>
+                            <ValidationMessage For="@(() => blsSalaryDetailViewModel.AreaCode)"></ValidationMessage>
+                        </span>
+                        <SfButton CssClass="btn red_btn"><i class="fas fa-search"></i></SfButton>
+                    </div>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(BlsSalary))
+            {
+                <div class="white_bx text-center">
+                    <h3>
+                        <span class="text-secondary"> Salary for </span>@(BlsOccupationsList?.FirstOrDefault(x => x.OccupationCode == blsSalaryDetailViewModel.OccupationCode)?.OccupationName ?? string.Empty)<span class="text-secondary"> in </span> @(BlsAreaNamesList?.FirstOrDefault(x => x.BlsAreaCode == blsSalaryDetailViewModel.AreaCode)?.BlsAreaName ?? string.Empty)
+                    </h3>
+                    <div class="midpoint_bx">
+                            <h3><b>@(BlsSalary ?? string.Empty)</b></h3>
+                    </div>
+                </div>
+            }
+            </div>
+    </div>
+    <div class="default-padding bottom-less professona_assist down_google">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="thumb">
+                        <a href="https://play.google.com/store/apps/details?id=com.gahealthcarenurses.dev" target="_blank"> <img src="assets/img/google_pay.png" alt="Thumb" class="zoom_duration" data-aos="zoom-in"></a>
+                        <a href="https://apps.apple.com/in/app/ushealthcarenurses/id1553040897" target="_blank"> <img src="assets/img/app_store.png" alt="Thumb" class="zoom_duration" data-aos="zoom-in"></a>
+
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info">
+                        <h2 data-aos="fade-left">Download our app</h2>
+                        <p data-aos="fade-up">
+                            Please visit the Google Play store or Apple store to download our app. You can also create the first part of your profile on this website but you have to complete it on your mobile device.
+                        </p>
+                        <p data-aos="fade-up"><a class="btn btn-theme border btn-md" href="nurse/register">Get Started</a></p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+<GaHealthcareNurses.Client.Shared.FormFooter />
+
+@code {
+
+    #region Protected Fields
+    SfComboBox<double?, BlsSalaryDetailsViewModel> sfOccupationComboBoxObj;
+    public BlsSalaryDetailsViewModel blsSalaryDetailViewModel { get; set; } = new BlsSalaryDetailsViewModel();
+    public ObservableCollection<BlsSalaryDetailsViewModel> BlsOccupationsList = new ObservableCollection<BlsSalaryDetailsViewModel>();
+    public List<BlsAreaZipcode> BlsAreaNamesList { get; set; } = new List<BlsAreaZipcode>();
+    bool isLoading { get; set; }
+    bool isOccupationsLoading { get; set; }
+    bool isAreaNamesLoading { get; set; }
+    public string BlsSalary { get; set; } = string.Empty;
+    #endregion
+
+    #region Get Bls AreaNames And BlsOccupations List Method
+    public async Task SearchBlsOccupationsAsync(ChangeEventArgs arg)
+    {
+        isOccupationsLoading = true;
+        ResetBlsSalary();
+        if(arg.Value.ToString().Length < 3)
+        {
+            isOccupationsLoading = false;
+            RefreshOccupationsList();
+            return;
+        }
+        var responseMessage = await HttpClient.GetAsync(wsp.Path + $"SalaryCalculator/SearchOccupationsAsync?occupationName={arg.Value}&blsAreaCode={blsSalaryDetailViewModel.AreaCode}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        BlsOccupationsList = (JsonConvert.DeserializeObject<Response<ObservableCollection<BlsSalaryDetailsViewModel>>>(response)).Data;
+        isOccupationsLoading = false;
+    }
+
+    private void ResetBlsSalary()
+    {
+        BlsSalary = string.Empty;
+    }
+
+    public async Task SearchBlsAreaNamesAsync(ChangeEventArgs args)
+    {
+        isAreaNamesLoading = true;
+        ResetBlsSalary();
+        //RefreshOccupationsList();
+        var responseMessage = await HttpClient.GetAsync(wsp.Path + $"SalaryCalculator/SearchBlsAreaNamesAsync?blsAreaName={args.Value ?? string.Empty}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        BlsAreaNamesList = (JsonConvert.DeserializeObject<Response<List<BlsAreaZipcode>>>(response)).Data;
+        isAreaNamesLoading = false;
+        StateHasChanged();
+    }
+
+    private void RefreshOccupationsList()
+    {
+        sfOccupationComboBoxObj.Clear();
+        BlsOccupationsList = new ObservableCollection<BlsSalaryDetailsViewModel>();
+    }
+
+    protected void OnBlsAreaSelect(SelectEventArgs<BlsAreaZipcode> args)
+    {
+        // RefreshOccupationsList();
+    }
+
+    public void OnBlsAreachange(ChangeEventArgs<double?, BlsAreaZipcode> args)
+    {
+        if (args.ItemData is null)
+        {
+            //RefreshOccupationsList();
+            ResetBlsSalary();
+        }
+    }
+
+    public void OnBlsOccupationchange(ChangeEventArgs<double?, BlsSalaryDetailsViewModel> args)
+    {
+        if (args.ItemData is null)
+        {
+            ResetBlsSalary();
+        }
+    }
+    #endregion
+
+    #region Calculate Bls Salary Method
+    public async Task CalculateBlsSalarySubmit()
+    {
+        isLoading = true;
+        if (blsSalaryDetailViewModel != null)
+        {
+            var stringPayload = JsonConvert.SerializeObject(blsSalaryDetailViewModel);
+            var stringContent = new StringContent(stringPayload, Encoding.UTF8, "application/json");
+            var httpResponse = await HttpClient.PostAsync($"{wsp.Path}SalaryCalculator/CalculateBlsSalaryAsync", stringContent);
+            var response = httpResponse.Content.ReadAsStringAsync().Result;
+            var deserializedResponse = (JsonConvert.DeserializeObject<Response<string>>(response));
+            if (deserializedResponse.Status == "Success")
+            {
+                BlsSalary = $"$ {Convert.ToDouble(deserializedResponse.Data).ToString("N0")}";
+            }
+            else
+            {
+                toastService.ShowError(deserializedResponse.Message);
+            }
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+    #endregion
+
+}

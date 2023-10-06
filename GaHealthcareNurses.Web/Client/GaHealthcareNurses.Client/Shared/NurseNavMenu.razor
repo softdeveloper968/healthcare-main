@@ -1,0 +1,161 @@
+﻿@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject HttpClient Http;
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@inject IJSRuntime jsRunTime
+@using Microsoft.JSInterop
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+
+<div class="d-flex">
+    <div class="user_data">
+        @if (nurseInformation.ProfliePicture != null)
+        {
+            <img class="photo" src="@UriHelper.ToAbsoluteUri(nurseInformation.ProfliePicture)" alt="@nurseInformation.FirstName" />
+        }
+        else
+        {
+            <img class="photo" src="assets/img/DefaultAgencyLogo.png" alt="@nurseInformation.FirstName" />
+        }
+        <div>@nurseInformation.FirstName @nurseInformation.LastName</div>
+        <div class="user_info">
+            <span class="user_email">@nurseInformation.EmailAddress</span>
+            <div class="dropdown">
+                <a href="#" class="dropdown-toggle active" data-toggle="dropdown"><i class="fas fa-caret-down"></i></a>
+                <ul class="dropdown-menu animated">
+                    <li><a @onclick="Logout">Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div>
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a data-toggle="collapse" href="#collapseOne">Inbox</a>
+            </div>
+            <div id="collapseOne" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <ul>
+                        <li>
+                            <NavLink class="nav-link" href="nurse/inbox" @onclick='(args) => MenuItemSelected(args, "Emails")' Match="NavLinkMatch.All">
+                                <i class="fa fa-envelope"></i> Emails
+                            </NavLink>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a data-toggle="collapse" href="#collapse2">Grids</a>
+            </div>
+            <div id="collapse2" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <ul>
+                        <li>
+                            <NavLink class="nav-link" href="nurse/dashboard" @onclick='(args) => MenuItemSelected(args, "Active Service Requests")'>
+                                <i class="fas fa-user-cog"></i> Service Requests
+                            </NavLink>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a data-toggle="collapse" href="#collapse3">Charting</a>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <ul>
+                        <li>
+                            <NavLink class="nav-link" href="nurse/assessments" @onclick='(args) => MenuItemSelected(args, "Initial Assessment")'>
+                                <i class="fas fa-clipboard-list"></i> Initial Assessment
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="nav-link" href="nurse/supervisory-visits" @onclick='(args) => MenuItemSelected(args, "Supervisory Visits")'>
+                                <i class="fas fa-user"></i> Supervisory Visits
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="nav-link" href="nurse/discharge-summaries" @onclick='(args) => MenuItemSelected(args, "Discharge Summaries")'>
+                                <i class="fas fa-hospital"></i> Discharge Summary
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="nav-link" href="nurse/care-plans" @onclick='(args) => MenuItemSelected(args, "Care Plan")'>
+                                <i class="fas fa-th-large"></i> Care Plan
+                            </NavLink>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a data-toggle="collapse" href="#collapse3">Settings</a>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <ul>
+                        <li>
+                            <NavLink class="nav-link" href="nurse/settings" @onclick='(args) => MenuItemSelected(args, "Profile")'>
+                                <i class="fas fa-user"></i> Profile
+                            </NavLink>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<string> OnMenuItemSelected { get; set; }
+
+    LoginViewModel<UserDetails> nurseData = new LoginViewModel<UserDetails>();
+
+    Nurse nurseInformation = new Nurse();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            nurseData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("nurseData");
+            if (nurseData != null)
+            {
+                var nurseResponseMessage = await Http.GetAsync(wsp.Path + $"Nurses/GetById?id={nurseData.UserDetails.UserId}");
+                var nurseResponse = nurseResponseMessage.Content.ReadAsStringAsync().Result;
+                nurseInformation = (JsonConvert.DeserializeObject<Response<Nurse>>(nurseResponse)).Data;
+                StateHasChanged();
+            }
+            else
+            {
+                navigation.NavigateTo("nurse/sign-in");
+            }
+        }
+    }
+
+    public async Task Logout()
+    {
+        await localStorage.RemoveItemAsync("nurseData");
+        toastService.ShowSuccess("Logout successfull!");
+        navigation.NavigateTo("nurses", forceLoad: true);
+    }
+
+    public async Task MenuItemSelected(MouseEventArgs e, string title)
+    {
+        await OnMenuItemSelected.InvokeAsync(title);
+        StateHasChanged();
+    }
+}

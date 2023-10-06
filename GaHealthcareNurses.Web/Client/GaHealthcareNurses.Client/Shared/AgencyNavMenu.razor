@@ -1,0 +1,255 @@
+﻿@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject HttpClient Http;
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@inject IJSRuntime jsRunTime
+@using Microsoft.JSInterop
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+
+<div class="d-flex">
+    <div class="user_data">
+        @if (agencyInformation.Logo != null)
+        {
+            <img class="photo" src="@UriHelper.ToAbsoluteUri(agencyInformation.Logo)" alt="@agencyInformation.Name" />
+        }
+        else
+        {
+            <img class="photo" src="assets/img/DefaultAgencyLogo.png" alt="@agencyInformation.Name" />
+        }
+        <div>@agencyInformation.Name</div>
+        <div class="user_info">
+            <span class="user_email">@agencyInformation.EmailAddress</span>
+            <div class="dropdown">
+                <a href="#" class="dropdown-toggle active" data-toggle="dropdown"><i class="fas fa-caret-down"></i></a>
+                <ul class="dropdown-menu animated">
+                    <li><a @onclick="Logout">Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div>
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a data-toggle="collapse" href="#collapseOne">Service Requests</a>
+            </div>
+            <div id="collapseOne" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <ul>
+                        <li>
+                            <NavLink class="nav-link" href="agency/dashboard" @onclick='(args) => MenuItemSelected(args, "All Service Requests")' Match="NavLinkMatch.All">
+                                <i class="fas fa-th-large"></i> All
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="nav-link" href="agency/service-requests" @onclick='(args) => MenuItemSelected(args, "Active Service Requests")'>
+                                <i class="fas fa-user-cog"></i> Active
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="nav-link" href="agency/apply_job" @onclick='(args) => MenuItemSelected(args, "Service Requests Bids")'>
+                                <i class="fas fa-tasks"></i> Bids
+                            </NavLink>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        @if (agencyInformation.Tasks || agencyInformation.Documents || agencyInformation.NursesList || agencyInformation.HeatMap)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a data-toggle="collapse" href="#collapse2">Nurses</a>
+                </div>
+                <div id="collapse2" class="panel-collapse collapse in">
+                    <div class="panel-body">
+                        <ul>
+                            @if (agencyInformation.NursesList)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/nurses-list" @onclick='(args) => MenuItemSelected(args, "Nurses List")'>
+                                        <i class="fas fa-user"></i> Nurses List
+                                    </NavLink>
+                                </li>
+                            }
+                            @if (agencyInformation.Tasks)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/tasklist" @onclick='(args) => MenuItemSelected(args, "Nurses Tasks")'>
+                                        <i class="fas fa-clipboard-list"></i> Tasks
+                                    </NavLink>
+                                </li>
+                            }
+                            @if (agencyInformation.Documents)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/uploaded_docs" @onclick='(args) => MenuItemSelected(args, "Nurses Documents")'>
+                                        <i class="fas fa-clipboard-list"></i> Documents
+                                    </NavLink>
+                                </li>
+                            }
+                            <li>
+                                <NavLink class="nav-link" href="agency/comments" @onclick='(args) => MenuItemSelected(args, "Nurses Comments/Notes")'>
+                                    <i class="fas fa-comment"></i> Comments/Notes
+                                </NavLink>
+                            </li>
+                            @if (agencyInformation.HeatMap)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="nurses-map" @onclick='(args) => MenuItemSelected(args, "Nurses Heat Map")'>
+                                        <i class="fas fa-map-marker-alt"></i> Heat Map
+                                    </NavLink>
+                                </li>
+                            }
+                        <li>
+                            <NavLink class="nav-link" href="agency/scheduler" @onclick='(args) => MenuItemSelected(args, "Care Recipient Calendar/Scheduler")'>
+                                <i class="fa fa-calendar" aria-hidden="true"></i> Calendar/Scheduler
+                            </NavLink>
+                        </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (agencyInformation.InitialAssessment || agencyInformation.SupervisoryVisits || agencyInformation.DischargeSummary || agencyInformation.CarePlan || agencyInformation.CareRecipients || agencyInformation.ServiceAgreements || agencyInformation.Calendar)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a data-toggle="collapse" href="#collapse3">Charting</a>
+                </div>
+                <div id="collapse3" class="panel-collapse collapse in">
+                    <div class="panel-body">
+                        <ul>
+                            @if (agencyInformation.InitialAssessment)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/assessments" @onclick='(args) => MenuItemSelected(args, "Initial Assessment")'>
+                                        <i class="fas fa-clipboard-list"></i> Initial Assessment
+                                    </NavLink>
+                                </li>
+                            }
+                            @if (agencyInformation.SupervisoryVisits)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/supervisory-visits" @onclick='(args) => MenuItemSelected(args, "Supervisory Visits")'>
+                                        <i class="fas fa-user"></i> Supervisory Visits
+                                    </NavLink>
+                                </li>
+                            }
+                            @if (agencyInformation.DischargeSummary)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/discharge-summaries" @onclick='(args) => MenuItemSelected(args, "Discharge Summaries")'>
+                                        <i class="fas fa-hospital"></i> Discharge Summary
+                                    </NavLink>
+                                </li>
+                            }
+                            @if (agencyInformation.CarePlan)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/care-plans" @onclick='(args) => MenuItemSelected(args, "Care Plan")'>
+                                        <i class="fas fa-th-large"></i> Care Plan
+                                    </NavLink>
+                                </li>
+                            }
+                            @if (agencyInformation.CareRecipients)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/care-recipients" @onclick='(args) => MenuItemSelected(args, "Care Recipients")'>
+                                        <i class="fas fa-th-large"></i> Care Recipients
+                                    </NavLink>
+                                </li>
+                            }
+                            @if (agencyInformation.ServiceAgreements)
+                            {
+                                <li>
+                                    <NavLink class="nav-link" href="agency/service-agreements" @onclick='(args) => MenuItemSelected(args,"Service Agreement")'><i class="fas fa-th-large"></i> Service Agreement</NavLink>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a data-toggle="collapse" href="#collapse3">Settings</a>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <ul>
+                        <li>
+                            <NavLink class="nav-link" href="agency/settings" @onclick='(args) => MenuItemSelected(args, "Profile")'>
+                                <i class="fas fa-user"></i> Profile
+                            </NavLink>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <ul>
+                        <li>
+                            <NavLink class="nav-link" href="agency/configuration" @onclick='(args) => MenuItemSelected(args, "Configuration")'>
+                                <i class="fa fa-cog"></i> Configuration
+                            </NavLink>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<string> OnMenuItemSelected { get; set; }
+
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+
+    Employer agencyInformation = new Employer();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData != null)
+            {
+                var agencyResponseMessage = await Http.GetAsync(wsp.Path + $"Employer/GetById?id={agencyData.UserDetails.UserId}");
+                var agencyResponse = agencyResponseMessage.Content.ReadAsStringAsync().Result;
+                agencyInformation = (JsonConvert.DeserializeObject<Response<Employer>>(agencyResponse)).Data;
+                if (agencyInformation.IsDeleted)
+                {
+                    navigation.NavigateTo("agency/sign-in");
+                }
+                StateHasChanged();
+            }
+            else
+            {
+                navigation.NavigateTo("agency/sign-in");
+            }
+        }
+    }
+
+    public async Task Logout()
+    {
+        await localStorage.RemoveItemAsync("agencyData");
+        toastService.ShowSuccess("Logout successfull!");
+        navigation.NavigateTo("agency", forceLoad: true);
+    }
+
+    public async Task MenuItemSelected(MouseEventArgs e, string title)
+    {
+        await OnMenuItemSelected.InvokeAsync(title);
+        StateHasChanged();
+    }
+}

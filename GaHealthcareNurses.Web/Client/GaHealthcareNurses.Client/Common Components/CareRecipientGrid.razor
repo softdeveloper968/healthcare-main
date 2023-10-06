@@ -1,0 +1,140 @@
+﻿@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@using GaHealthcareNurses.Entity.ViewModels
+@using Newtonsoft.Json
+@using GaHealthcareNurses.Entity.Models
+@using Data.ViewModels
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IToastService toastService
+
+<div class="summaries_data">
+    <SfGrid DataSource="DataSource" AllowPaging="true" AllowSorting="true" Toolbar="@(new List<string>() { "Search" })">
+        <GridColumns>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.FirstName)" Width="50" HeaderText="First Name" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.LastName)" Width="50" HeaderText="Last Name" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.Age)" Width="30" HeaderText="Age" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.Gender)" Width="60" HeaderText="Gender" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.Address)" Width="100" HeaderText="Address" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.Status)" Width="60" HeaderText="Status" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.Visibility)" Width="50" HeaderText="Visibility" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.InitialAssessmentDate)" Width="80" HeaderText="Initial Assessment" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetCareRecipientListResponseModel.AssignedCareGiver)" Width="80" HeaderText="Assigned Caregiver" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Width="20" TextAlign="TextAlign.Right" CustomAttributes="@(new Dictionary<string, object>(){ { "class", "actions_btns" }})">
+                <Template>
+                    @{
+                        var careRecipient = (context as GetCareRecipientListResponseModel);
+
+                        <div class="dropdown text-right">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></a>
+                            <ul class="dropdown-menu animated">
+                                <li><a href="javascript:void(0)" @onclick="()=>OpenStatusDialog(careRecipient)"><i class="far fa-edit"></i> Change Status/Visibility</a></li>
+                                <li><a href="javascript:void(0)"><i class="fas fa-eye"></i> View Initial Assessment</a></li>
+                            </ul>
+                        </div>
+                    }
+                </Template>
+            </GridColumn>
+        </GridColumns>
+    </SfGrid>
+</div>
+
+<SfDialog @ref="updateStatusDialog" Width="500px" Visible="false" ShowCloseIcon="true" IsModal="true">
+    <DialogEvents Closed="CloseStatusDialog"></DialogEvents>
+    <DialogTemplates>
+        <Header>
+        <h3> Change Status/Visibility </h3>
+        </Header>
+        <Content>
+            <EditForm Model="model" OnValidSubmit="UpdateStatusAndVisibility">
+                <DataAnnotationsValidator />
+                <div class="form-group">
+                    <label>Select Status:</label>
+                    <SfDropDownList class="form-control" @bind-Value="model.Status" TValue="string" TItem="PatientStatus" DataSource="@statusList">
+                        <DropDownListFieldSettings Text="Value" Value="Value"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                    <ValidationMessage For="@(() => model.Status)" />
+                </div>
+                <div class="form-group">
+                    <label>Select Visibility:</label>
+                    <SfDropDownList class="form-control" @bind-Value="model.Visibility" TValue="string" TItem="PatientStatus" DataSource="@visibilityList">
+                        <DropDownListFieldSettings Text="Value" Value="Value"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                    <ValidationMessage For="@(() => model.Visibility)" />
+                </div>
+                <div class="ds_btns">
+                    <button @onclick="CloseStatusDialog" type="button" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </EditForm>
+        </Content>
+    </DialogTemplates>
+    <DialogAnimationSettings Effect="@DialogEffect.Zoom"></DialogAnimationSettings>
+</SfDialog>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    [Parameter]
+    public List<GetCareRecipientListResponseModel> DataSource { get; set; }
+    [Parameter]
+    public string UserRole { get; set; }
+    [Parameter]
+    public EventCallback<int> OnDataSourceRefresh { get; set; }
+    bool isLoading = false;
+    List<PatientStatus> statusList = new List<PatientStatus>
+{
+        new PatientStatus{ Id=1, Value="Pre-Admit" },
+        new PatientStatus{ Id=2, Value="Admitted" },
+        new PatientStatus{ Id=3, Value="Transfer" },
+        new PatientStatus{ Id=4, Value="Discharged" },
+        new PatientStatus{ Id=5, Value="Non-Admin" }
+    };
+    List<PatientStatus> visibilityList = new List<PatientStatus>
+{
+        new PatientStatus{ Id=1, Value="Active" },
+        new PatientStatus{ Id=2, Value="Inactive" },
+        new PatientStatus{ Id=3, Value="Deleted" }
+    };
+    SfDialog updateStatusDialog;
+    UpdateStatusVisibilityViewModel model = new UpdateStatusVisibilityViewModel();
+
+    public void CloseStatusDialog()
+    {
+        updateStatusDialog.Hide();
+    }
+
+    public void OpenStatusDialog(GetCareRecipientListResponseModel careRecipient)
+    {
+        model = new UpdateStatusVisibilityViewModel();
+        model.CareRecipientId = careRecipient.CareRecipientId;
+        model.Status = careRecipient.Status;
+        model.Visibility = careRecipient.Visibility;
+        updateStatusDialog.Show();
+    }
+
+    public async Task UpdateStatusAndVisibility()
+    {
+        CloseStatusDialog();
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "CareRecipient/UpdateStatusAndVisibility", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnDataSourceRefresh.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+}

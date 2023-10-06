@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;500;600;700&display=swap"
+          rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+
+
+        .Service {
+            padding: 20px 5px 0;
+            max-width: 770px;
+            margin: 0 auto;
+        }
+
+        td {
+            font-size: 0.8rem;
+            padding-bottom: 26px;
+        }
+
+
+
+        .fieldset_box {
+            display: block;
+            border: 1px solid #ccc;
+            border-image: initial;
+            margin: 0 0 18px;
+            position: relative;
+            padding: 13px 10px 6px;
+        }
+
+        .legend_txt {
+            display: block;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 500;
+            background: #fff;
+            top: -8px;
+            position: absolute;
+            left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="Service">
+        <table style="width:100%;border: 0;border-spacing: 0; margin-top:25px;">
+            <tbody>
+                <tr>
+                    <td>
+                        <div>
+                            <label style="margin-left: 40%;">Patient:[[PatientName]]</label>
+                            <label style="margin-left: 75%;">Date</label>
+                            <input type="text" value="[[CurrentDate]]"/>
+                        </div>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+
+                        <div class="fieldset_box">
+                            <span class="legend_txt">I. CLIENT INFORMATION</span>
+                            <table style="width:100%">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <label>NAME OF STAFF MEMBER BEING SUPERVISED:[[StaffPersonName]]</label>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                Staff Person in Home During Supervisiory Visit:<div>
+                                                    <label>
+                                                        <input type="radio" name="Person" [[StaffPersonInHomeYes]]> Yes
+                                                    </label> <label>
+                                                        <input type="radio" name="Person" [[StaffPersonInHomeNo]]> No
+                                                    </label>
+
+                                                </div>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td colspan="2" style="padding:0px;">
+                                            <hr />
+
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td colspan="2">
+                                            <div>
+                                                Supervisiory Visit:
+                                                <label><input type="radio" name="visit" [[SupervisioryVisitInfoCOTA]]> COTA </label>
+                                                <label><input type="radio" name="visit" [[SupervisioryVisitInfoLPN]]> LPN</label> <label>
+                                                    <input type="radio" name="visit" [[SupervisioryVisitInfoPTA]]> PTA
+                                                </label>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2">
+
+                        <div class="fieldset_box">
+                            <span class="legend_txt">II. STAFF INFORMATION</span>
+                            <table style="width:100%">
+                                <tbody>
+
+                                    <tr>
+
+                                        <td colspan="2">
+                                            <div>
+                                                Following POC:
+                                                <label><input type="radio" name="POC" [[FollowingPocYes]]> Yes </label>
+                                                <label><input type="radio" name="POC" [[FollowingPocNo]]> No </label>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+
+                                        <td colspan="2">
+                                            <div>
+                                                POC Changed
+                                                <label><input type="radio" name="Changed" [[PocChangedYes]]> Yes </label>
+                                                <label><input type="radio" name="Changed" [[PocChangedNo]]> No </label>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td colspan="2">
+                                            <div>
+                                                Patient/Staff compatible:
+                                                <label><input type="radio" name="Staff" [[PatientCompatibleYes]]> Yes </label>
+                                                <label><input type="radio" name="Staff" [[PatientCompatibleNo]]> No </label>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td colspan="2">
+                                            <div>
+                                                Communicates well with pt,rep (if any),cg and fa
+                                                <label><input type="radio" name="Communicates" [[CommunicatesWithPtYes]]> Yes </label>
+                                                <label><input type="radio" name="Communicates" [[CommunicatesWithPtNo]]> No </label>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td colspan="2">
+                                            <div>
+                                                Complies with infection prevention/control policies/proce
+                                                <label><input type="radio" name="Compiles" [[CompilesWithInfectionYes]]> Yes </label>
+                                                <label><input type="radio" name="Compiles" [[CompilesWithInfectionNo]]> No </label>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td colspan="2">
+                                            <div>
+                                                Honors patient rights:
+                                                <label><input type="radio" name="Honors" [[HonorsPatientRightsYes]]> Yes </label>
+                                                <label><input type="radio" name="Honors" [[HonorsPatientRightsNo]]> No </label>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td colspan="2">
+                                            <div>
+                                                Patient/responsible party/caregiver notified of change:
+                                                <label><input type="radio" name="Patient" [[PatientNotifiedOfChangeNA]]> N/A </label>
+                                                <label><input type="radio" name="Patient" [[PatientNotifiedOfChangeYes]]> Yes </label>
+                                                <label><input type="radio" name="Patient" [[PatientNotifiedOfChangeNo]]> No </label>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                        <div class="fieldset_box">
+                            <span class="legend_txt">II. STAFF INFORMATION</span>
+                            <table style="width:100%">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <input type="text" style="width:100%; height:100%; border: 0px solid white;"
+                                                   value="[[Details]]" />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+</html>

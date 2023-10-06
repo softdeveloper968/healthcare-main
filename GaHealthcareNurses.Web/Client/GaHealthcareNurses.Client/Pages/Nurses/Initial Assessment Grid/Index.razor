@@ -1,0 +1,59 @@
+﻿@page "/nurse/assessments"
+@layout GaHealthcareNurses.Client.Shared.NurseLayout
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@using Microsoft.JSInterop
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json
+@using GaHealthcareNurses.Client.Common_Components
+@using Syncfusion.Blazor.Spinner
+
+<div class="top-entry-area client_dashboard">
+    <div class="row dahboard_box">
+        <div id="tab_content" class="tab-content tab-content-info">
+            <div id="tab1" class="tab-pane fade active in">
+                <AdultAssessmentGrid DataSource="@assesssments" UserRole="@nurseData.Role" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code{
+    LoginViewModel<UserDetails> nurseData = new LoginViewModel<UserDetails>();
+    List<GetAdultAssessmentListResponseModel> assesssments = new List<GetAdultAssessmentListResponseModel>();
+    bool isLoading = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            nurseData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("nurseData");
+            if (nurseData == null)
+            {
+                navigation.NavigateTo("nurse/sign-in");
+            }
+            else
+            {
+                await GetAssessments();
+            }
+        }
+    }
+
+    public async Task GetAssessments()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"AdultAssessment/GetAssessmentByNurseId?nurseId={nurseData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        assesssments = (JsonConvert.DeserializeObject<Response<List<GetAdultAssessmentListResponseModel>>>(response)).Data.OrderByDescending(x => x.Id).ToList();
+        isLoading = false;
+        StateHasChanged();
+    }
+}

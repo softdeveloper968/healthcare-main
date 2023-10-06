@@ -1,0 +1,93 @@
+﻿@page "/education";
+@layout GaHealthcareNurses.Client.Shared.SecondaryLayout
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IToastService toastService
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IJSRuntime jsRunTime
+@using Microsoft.JSInterop
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+@using GaHealthcareNurses.Entity.ViewModels
+@using GaHealthcareNurses.Entity.Models
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns
+@using Newtonsoft.Json;
+@using Syncfusion.Blazor.Buttons
+@inject IToastService toastService
+
+<GaHealthcareNurses.Client.Shared.EducationHeader />
+
+
+<div class="container ceus_form">
+    <h2><span>Need CEU'S</span></h2>
+    <div>
+        <EditForm Model="@educationalModel" >
+            <DataAnnotationsValidator />
+            <div class="inputFiled form-group">
+                <SfTextBox Placeholder="First Name" @bind-Value="@educationalModel.FirstName"></SfTextBox>
+                <ValidationMessage For="@(() => educationalModel.FirstName)" />
+            </div>
+            <div class="inputFiled form-group">
+                <SfTextBox Placeholder="Last Name" @bind-Value="@educationalModel.LastName"></SfTextBox>
+                <ValidationMessage For="@(() => educationalModel.LastName)" />
+            </div>
+            <div class="inputFiled form-group">
+                <SfTextBox Placeholder="E-mail Address" @bind-Value="@educationalModel.Email"></SfTextBox>
+                <ValidationMessage For="@(() => educationalModel.LastName)" />
+            </div>
+            <div class="inputFiled form-group">
+                <SfTextBox Placeholder="State" @bind-Value="@educationalModel.State"></SfTextBox>
+                <ValidationMessage For="@(() => educationalModel.State)" />
+            </div>
+            <div class="inputFiled form-group">
+                <SfDropDownList TValue="string" TItem="DropdownlistModel" Placeholder="Job Type" @bind-Value="@educationalModel.Qualification" DataSource="@dropdownlistModel">
+                    <DropDownListFieldSettings Text="Name" Value="Name"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </div>
+            <div>
+                <SfButton OnClick="@sendEmail" CssClass="create_account btn-theme border">Submit</SfButton>
+            </div>
+        </EditForm>
+        <div class="edu_text">You should recieve a link with your login information in your email within 24-72 hours </div>
+    </div>
+</div>
+<GaHealthcareNurses.Client.Shared.FormFooter />
+
+@code {
+
+
+    public EducationRequestViewModel educationalModel { get; set; } = new EducationRequestViewModel();
+    public class DropdownlistModel
+    {
+        public string Name { get; set; }
+
+        public string Id { get; set; }
+    }
+
+    List<DropdownlistModel> dropdownlistModel = new List<DropdownlistModel>
+    {
+        new DropdownlistModel() { Name = "CNA", Id = "1" },
+        new DropdownlistModel() { Name = "PCA", Id = "2" },
+        new DropdownlistModel() { Name = "HHA", Id = "3" }
+    };
+
+    public async Task sendEmail()
+    {
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "CareRecipient/SendEmail", educationalModel);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        StateHasChanged();
+    }
+
+}

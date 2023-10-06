@@ -1,0 +1,118 @@
+﻿@using Syncfusion.Blazor.Grids
+@using Newtonsoft.Json
+@using Syncfusion.Blazor.Spinner
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IToastService toastService
+@inject GaHealthcareNurses.Client.Helper.ExportPdfService exportPDF
+
+
+<div class="summaries_data">
+    <SfGrid DataSource="DataSource" AllowPaging="true" AllowSorting="true" Toolbar="@(new List<string>() { "Search" })">
+        <GridColumns>
+            <GridColumn Field="@nameof(ServiceAgreementListModel.ServiceRequired)" Width="100" HeaderText="Service Required" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(ServiceAgreementListModel.CareRecipient)" Width="70" HeaderText="Care Recipient" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(ServiceAgreementListModel.CareStartsOn)" Format="MM/dd/yyyy" Width="70" HeaderText="Care Starts On" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(ServiceAgreementListModel.ServiceProvide)" Width="90" HeaderText="Services To Be Provide" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(ServiceAgreementListModel.SignedByClient)" Format="MM/dd/yyyy" Width="78" HeaderText="Signed On(Client)" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(ServiceAgreementListModel.SignedByAgency)" Format="MM/dd/yyyy" Width="78" HeaderText="Signed On(Agency)" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Width="20" TextAlign="TextAlign.Right" CustomAttributes="@(new Dictionary<string, object>(){ { "class", "actions_btns" }})">
+                <Template>
+                    @{
+                        var serviceAgreement = (context as ServiceAgreementListModel);
+
+                        <div class="dropdown text-right">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></a>
+                            <ul class="dropdown-menu animated">
+                                <li><a @onclick="()=>UpdateServiceAgreement(serviceAgreement.ServiceAgreementId)" href="javascript:void(0)"><i class="far fa-edit"></i> Edit</a></li>
+                                <li><a @onclick="()=>ArchieveServiceAgreement(serviceAgreement.ServiceAgreementId)" href="javascript:void(0)"><i class="fas fa-trash-alt"></i> Archieve</a></li>
+                                <li><a @onclick="()=>PrintPDF(serviceAgreement.ServiceAgreementId)" href="javascript:void(0)"><i class="fa fa-print"></i> Print PDF</a></li>
+                                <li><a @onclick="()=>SendPDF(serviceAgreement.ServiceAgreementId)" href="javascript:void(0)"><i class="fa fa-print"></i> Send PDF</a></li>
+                            </ul>
+                        </div>
+                    }
+                </Template>
+            </GridColumn>
+        </GridColumns>
+    </SfGrid>
+</div>
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    [Parameter]
+    public List<ServiceAgreementListModel> DataSource { get; set; }
+    public ArchieveServiceAgreementViewModel model = new ArchieveServiceAgreementViewModel();
+    public bool IsView { get; set; } = false;
+    bool isLoading = false;
+    [Parameter]
+    public EventCallback<int> RefreshDataSource { get; set; }
+
+    public void UpdateServiceAgreement(int serviceAgreementId)
+    {
+        navigation.NavigateTo($"service-agreement/{serviceAgreementId}");
+    }
+
+    public async Task ArchieveServiceAgreement(int serviceAgreementId)
+    {
+        isLoading = true;
+        model = new ArchieveServiceAgreementViewModel
+        {
+            ServiceAgreementId = serviceAgreementId,
+            IsArchieve = true
+        };
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + $"ServiceAgreement/ArchieveServiceAgreement", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await RefreshDataSource.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+    public async Task PrintPDF(int id)
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + "ServiceAgreement/GetServiceAgreementPDFBytes/" + id);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<ServiceAgreementPDFBytes>>(response));
+        if (result.Status == "Success")
+        {
+            //Download the PDF in the browser.
+            await exportPDF.SaveAs($"ServiceAgreement_{id}.pdf", result.Data.Bytes);
+            toastService.ShowSuccess(result.Message);
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task SendPDF(int id)
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + "ServiceAgreement/SendServiceAgreementPDF/" + id);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,16 @@
+﻿@page "/agency/assessment/{id:int}/{view:bool}"
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@using GaHealthcareNurses.Client.Common_Components
+@using GaHealthcareNurses.Entity.Common
+
+<AdultAssessmentForm Id="Id" View="View" Role="@UserRoles.Employer.ToString()"></AdultAssessmentForm>
+
+@code {
+    bool isLoading = false;
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public bool View { get; set; }
+}
+
+

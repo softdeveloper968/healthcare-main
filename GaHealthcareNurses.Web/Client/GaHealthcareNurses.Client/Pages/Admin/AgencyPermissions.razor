@@ -1,0 +1,111 @@
+﻿@page "/admin/permission/{id}"
+@using GaHealthcareNurses.Entity.ViewModels
+@using Syncfusion.Blazor.Buttons
+@using Newtonsoft.Json
+@using GaHealthcareNurses.Entity.Models
+@using Syncfusion.Blazor.Spinner
+@layout GaHealthcareNurses.Client.Shared.AdminLayout
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject IToastService toastService
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+
+<EditForm Model="@model" OnValidSubmit="SetPermissions">
+    <div class="skilled_nurse_sec set_permission">
+        <div class="margin_bottom">Agency Permissions: <strong>@model.Name</strong><span></span></div>
+        <div class="row">
+            <div class="col-md-5">
+                <fieldset>
+                    <legend>Nurse</legend>
+                    <ul>
+                        <li><SfCheckBox Label="Nurse's List" LabelPosition="LabelPosition.After" @bind-Checked="@model.NursesList"></SfCheckBox></li>
+                        <li><SfCheckBox Label="Nurses Tasks" LabelPosition="LabelPosition.After" @bind-Checked="@model.Tasks"></SfCheckBox></li>
+                        <li><SfCheckBox Label="Documents" LabelPosition="LabelPosition.After" @bind-Checked="@model.Documents"></SfCheckBox></li>
+                        <li><SfCheckBox Label="Heat Map" LabelPosition="LabelPosition.After" @bind-Checked="@model.HeatMap"></SfCheckBox></li>
+                    </ul>
+                </fieldset>
+            </div>
+            <div class="col-md-7">
+                <fieldset>
+                    <legend>Charting</legend>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul>
+                                <li><SfCheckBox Label="Initial Assessment" LabelPosition="LabelPosition.After" @bind-Checked="@model.InitialAssessment"></SfCheckBox></li>
+                                <li><SfCheckBox Label="Supervisory Visits" LabelPosition="LabelPosition.After" @bind-Checked="@model.SupervisoryVisits"></SfCheckBox></li>
+                                <li><SfCheckBox Label="Discharge Summary" LabelPosition="LabelPosition.After" @bind-Checked="@model.DischargeSummary"></SfCheckBox></li>
+                                <li><SfCheckBox Label="Care Plan" LabelPosition="LabelPosition.After" @bind-Checked="@model.CarePlan"></SfCheckBox></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li><SfCheckBox Label="Care Recipients" LabelPosition="LabelPosition.After" @bind-Checked="@model.CareRecipients"></SfCheckBox></li>
+                                <li><SfCheckBox Label="Service Agreements" LabelPosition="LabelPosition.After" @bind-Checked="@model.ServiceAgreements"></SfCheckBox></li>
+                                <li><SfCheckBox Label="Calendar" LabelPosition="LabelPosition.After" @bind-Checked="@model.Calendar"></SfCheckBox></li>
+                            </ul>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="ds_btns text_margin">
+            <button @onclick="NavigateToAgencyListGrid" type="button" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </div>
+</EditForm>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    bool isLoading = false;
+    SetPermissionsViewModel model = new SetPermissionsViewModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var agencyResponseMessage = await Http.GetAsync(wsp.Path + $"Employer/GetById?id={Id}");
+        var agencyResponse = agencyResponseMessage.Content.ReadAsStringAsync().Result;
+        var agencyInformation = (JsonConvert.DeserializeObject<Response<Employer>>(agencyResponse)).Data;
+        model.EmployerId = agencyInformation.Id;
+        model.Name = agencyInformation.Name;
+        model.Calendar = agencyInformation.Calendar;
+        model.CarePlan = agencyInformation.CarePlan;
+        model.CareRecipients = agencyInformation.CareRecipients;
+        model.DischargeSummary = agencyInformation.DischargeSummary;
+        model.Documents = agencyInformation.Documents;
+        model.HeatMap = agencyInformation.HeatMap;
+        model.InitialAssessment = agencyInformation.InitialAssessment;
+        model.NursesList = agencyInformation.NursesList;
+        model.ServiceAgreements = agencyInformation.ServiceAgreements;
+        model.SupervisoryVisits = agencyInformation.SupervisoryVisits;
+        model.Tasks = agencyInformation.Tasks;
+        StateHasChanged();
+    }
+
+    public void NavigateToAgencyListGrid()
+    {
+        navigation.NavigateTo("/admin/agencies-list");
+    }
+
+    public async Task SetPermissions()
+    {
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "Employer/SetPermissions", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            NavigateToAgencyListGrid();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,158 @@
+﻿@page "/admin";
+@layout GaHealthcareNurses.Client.Shared.AdminLayout
+@inject HttpClient Http;
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using GaHealthcareNurses.Entity.ViewModels
+@using GaHealthcareNurses.Entity.Models
+@using Newtonsoft.Json;
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using GaHealthcareNurses.Entity.Common
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Spinner
+@inject NavigationManager navigation
+@using Syncfusion.Blazor.Buttons
+@inject IJSRuntime jsRunTime
+@inject IToastService toast
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.SplitButtons
+@using GaHealthcareNurses.Client.Common_Components
+@using Syncfusion.Blazor.Popups
+@inject IToastService toastService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+    <div class="top-entry-area client_dashboard">
+        <div class="row dahboard_box">
+            <div id="tab_content" class="tab-content tab-content-info">
+                <div id="tab1" class="tab-pane fade active in">
+                    <ServiceRequestGrid DataSource="serviceRequests" UserRole="@UserRoles.Admin.ToString()" SelectAgencies="GetAgenciesToBid"></ServiceRequestGrid>
+                    @*<SfGrid @ref="serviceRequestsGrid" TValue="GetJobsForAgencyViewModel" AllowPaging="true" Toolbar="@(new List<string>() { "Search" })">
+                        <GridPageSettings PageSize="4"></GridPageSettings>
+                        <SfDataManager Url="https://gahealthcarenurseswebapi.azurewebsites.net/api/Job/GetAllForAgency" Adaptor="Adaptors.WebApiAdaptor"></SfDataManager>
+                        <GridPageSettings EnableQueryString="true" PageSizes="@PageSizes"></GridPageSettings>
+                        <GridColumns>
+                            <GridColumn Field="JobTitle.Title" HeaderText="Job Title" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="300"></GridColumn>
+                            <GridColumn Field="CareRecipient.City.Name" HeaderText="Location" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="150"></GridColumn>
+                            <GridColumn Field="CareRecipient.FirstName" HeaderText="Care Recipient" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="150"></GridColumn>
+                            <GridColumn Field="Employer.Name" HeaderText="Agency" Type="ColumnType.String" TextAlign="TextAlign.Left" Width="150"></GridColumn>
+                            <GridColumn Field="PostedTime" HeaderText="Date Created" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Left" Width="150"></GridColumn>
+                            <GridColumn Width="100" TextAlign="TextAlign.Right">
+                                <Template>
+
+                                    @{
+                                        var job = (context as GetJobsForAgencyViewModel);
+                                    }
+                                    @if (job != null)
+                                    {
+                                        @if (job.StatusId == 5)
+                                        {
+                                            <SfButton @onclick="()=> GetAgenciesToBid(job.JobId)">Select</SfButton>
+                                        }
+                                        else if (job.StatusId == 13)
+                                        {
+                                            <SfButton Disabled="true">Active</SfButton>
+                                        }
+                                        else
+                                        {
+                                            <SfButton Disabled="true">Pending</SfButton>
+                                        }
+                                    }
+                                </Template>
+                            </GridColumn>
+                        </GridColumns>
+                    </SfGrid>*@
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <SfDialog ResizeHandles="@dialogResizeDirections" EnableResize="true" AllowDragging="true" IsModal="true" ShowCloseIcon="true" Width="500px" Visible="false" @ref="DialogObj">
+        <DialogEvents Closed="@DialogClose"></DialogEvents>
+        <DialogPositionData X="center" Y="center"></DialogPositionData>
+        <DialogTemplates>
+            <Header>
+                Select Agencies
+            </Header>
+            <Content>
+                <EditForm Model="model" OnValidSubmit="InviteToBid">
+                    <DataAnnotationsValidator />
+                    <SfMultiSelect @bind-Value="model.Agencies" TValue="List<string>" TItem="Employer" AllowFiltering="true" Placeholder="Select agencies" Mode="@VisualMode.CheckBox" ShowSelectAll="true" ShowDropDownIcon="true" DataSource="@agencyList" FilterBarPlaceholder="Search agency" PopupHeight="350px">
+                        <MultiSelectFieldSettings Text="Name" Value="Id"></MultiSelectFieldSettings>
+                    </SfMultiSelect>
+                    <ValidationMessage For="@(() => model.Agencies)" />
+                    <SfButton CssClass="invite-bid">Invite To Bid</SfButton>
+                </EditForm>
+            </Content>
+        </DialogTemplates>
+        <DialogAnimationSettings Effect="@DialogEffect.Zoom"></DialogAnimationSettings>
+    </SfDialog>
+
+    <SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+
+@code
+{
+    SfDialog DialogObj;
+    SfGrid<GetJobsForAgencyViewModel> serviceRequestsGrid;
+    public bool isLoading = false;
+    List<Employer> agencyList = new List<Employer>();
+    private ResizeDirection[] dialogResizeDirections { get; set; } = new ResizeDirection[] { ResizeDirection.All };
+    public int[] PageSizes { get; } = { 10, 20, 30, 40, 50 };
+    JobInvitationViewModel model = new JobInvitationViewModel();
+    List<GetServiceRequestListResponseModel> serviceRequests = new List<GetServiceRequestListResponseModel>();
+
+    public async Task GetAgenciesToBid(int jobId)
+    {
+        model = new JobInvitationViewModel();
+        model.JobId = jobId;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Employer/GetAgenciesForBid?jobId={jobId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        agencyList = (JsonConvert.DeserializeObject<Response<List<Employer>>>(response)).Data;
+        DialogObj.Show();
+    }
+
+    public async Task InviteToBid()
+    {
+        DialogObj.Hide();
+        isLoading = true; ;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "SendJobInvitation", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var data = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (data.Status == "Success")
+        {
+            toast.ShowSuccess(data.Message);
+            await GetServiceRequests();
+        }
+        else
+        {
+            toast.ShowError(data.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetServiceRequests();
+    }
+
+    public async Task GetServiceRequests()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + "Job/GetJobsByAdmin");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        serviceRequests = (JsonConvert.DeserializeObject<Response<List<GetServiceRequestListResponseModel>>>(response)).Data.OrderByDescending(x => x.JobId).ToList();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task RemoveClass()
+    {
+        await jsRunTime.InvokeVoidAsync("RemoveClass");
+    }
+
+    public void DialogClose(object args)
+    {
+        DialogObj.Hide();
+    }
+}

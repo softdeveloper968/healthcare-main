@@ -1,0 +1,1107 @@
+﻿@page "/agency/dashboard"
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Calendars
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@using GaHealthcareNurses.Client.Data.ViewModels
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Navigations
+@inject IJSRuntime jsRunTime
+@using Syncfusion.Blazor.Popups
+@using Microsoft.JSInterop
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Data
+@using GaHealthcareNurses.Client.Helper
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+@using GaHealthcareNurses.Client.Common_Components
+@using GaHealthcareNurses.Entity.Common
+
+<div class="top-entry-area client_dashboard">
+    <div class="tab-content tab-content-info">
+        <div id="tab1" class="tab-pane fade active in">
+            @*<div class="req_service text-left">
+                <div tabindex="0">
+                    <label>Status</label>
+                    <SfTooltip>
+                        <TooltipTemplates>
+                            <Content>
+                                <div class='e-statustext'>
+                                    This page shows the list of Service Requests (SR) an Agency is connected to.
+                                    You can filter the display based on the different statuses represented by the state of the Service Requests.<br />
+                                    <strong>Invited</strong> - These are Service Requests that an Agency has been invited to bid for <br />
+                                    <strong>Pending</strong> - These are Service Requests that an Agency has bidded for and still expecting reply<br />
+                                    <strong>Active</strong> - These are Service Requests currently being serviced by the Agency <br />
+                                    <strong>Completed</strong> - These are completed Service Requests.
+                                </div>
+                            </Content>
+                        </TooltipTemplates>
+                        <SfDropDownList class="form-control" TValue="int" TItem="Status" AllowFiltering="true" DataSource="@statusList" Placeholder="Status">
+                            <DropDownListEvents TItem="Status" TValue="int" ValueChange="OnStatusChange"></DropDownListEvents>
+                            <DropDownListFieldSettings Text="Name" Value="StatusId"></DropDownListFieldSettings>
+                        </SfDropDownList>
+                    </SfTooltip>
+                </div>
+                <div class="btns_box">
+                    <SfButton @onclick="OpenCreateServiceRequestDialog">New</SfButton>
+                    <SfButton @onclick="CreateDuplicateSR">Duplicate</SfButton>
+                </div>
+            </div>*@
+
+            <div class="info title">
+                    <ServiceRequestGrid DataSource="serviceRequests" UserRole="@UserRoles.Employer.ToString()" RowSelected="RowSelecthandler" EmployerId="@agencyData.UserDetails?.UserId" OnDataSourceRefresh="GetAgencyServiceRequests"></ServiceRequestGrid>
+                @*<SfGrid DataSource="@jobsApplied" AllowPaging="true" AllowSorting="true" Toolbar="@(new List<string>() { "Search" })">
+            <GridEvents RowDeselected="RowDeSelectHandler" RowSelected="RowSelecthandler" TValue="JobApplyForAgency"></GridEvents>
+            <GridPageSettings PageCount="8" PageSize="6" PageSizes="true"></GridPageSettings>
+            <GridColumns>
+                <GridColumn Field="Job.PostedTime" HeaderText="Date" TextAlign="TextAlign.Left" Format="d" Type="ColumnType.Date" Width="120"></GridColumn>
+                <GridColumn Field="Job.Client.FirstName" HeaderText="Client" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+                <GridColumn HeaderText="Care Recipient" TextAlign="TextAlign.Left" Width="120">
+                    <Template Context="JobContext">
+                        @{
+                            var job = (JobContext as JobApplyForAgency);
+                            <span>@job.Job.CareRecipient.FirstName @job.Job.CareRecipient.LastName</span>
+                        }
+                    </Template>
+                </GridColumn>
+                <GridColumn Field="Job.CareRecipient.City.Name" HeaderText="Location" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+                <GridColumn Field="Status.Name" HeaderText="Status" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+            </GridColumns>
+        </SfGrid>*@
+                <br />
+                <div class='e-statustext'>
+                    The grid below shows the list of Nurses that have applied to the highlighted Service Requests.
+                    You can expand each nurse to gain access to more detailed information like Work Experience, Education, etc.
+                </div>
+                <br />
+                <div class='e-statustext'>
+                    Nurses That Applied For : <b>@SelectedJob</b>
+                </div>
+                <SfGrid ID="Grid" AllowSelection="true" @ref="NursesGrid" DataSource="@jobs" AllowPaging="true">
+
+                    <GridSelectionSettings CheckboxOnly="true" PersistSelection="true"></GridSelectionSettings>
+                    <GridTemplates>
+                        <DetailTemplate>
+                            @{
+                                var nurse = (context as JobApply);
+
+                            }
+                            <div style="padding:20px">
+                                <SfTab>
+                                    <TabItems>
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Personal Info"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="float:left;padding:45px;padding-top:70px"><img class="photo" src="@UriHelper.ToAbsoluteUri(nurse.Nurse.ProfliePicture)" alt="@nurse.Nurse.FirstName" /></div>
+
+                                                    <div style="padding-top: 42px;">
+                                                        <div style="width:265px;float:left;padding:40px">
+                                                            <span><b>First Name:</b></span> <span class="content">@nurse.Nurse.FirstName</span><br />
+                                                            <span><b>Last Name:</b></span> <span class="content">@nurse.Nurse.LastName</span><br />
+                                                            <span><b>Middle Initial:</b></span> <span class="content">@nurse.Nurse.MiddleInitial</span><br />
+                                                            @*<span><b>SSN:</b></span> <span class="content">@nurse.Nurse.SocialSecurityNo</span><br />*@
+                                                            <span><b>Date of Birth:</b></span> <span class="content">@Convert.ToDateTime(@nurse.Nurse.DateOfBirth).ToShortDateString()</span><br />
+                                                            <span><b>Email:</b></span> <span class="content">@nurse.Nurse.EmailAddress</span><br />
+                                                            <span><b>Telephone No:</b></span> <span class="content">@nurse.Nurse.TelephoneNo</span><br />
+                                                            <span><b>Address:</b></span> <span class="content">@nurse.Nurse.AddressLine1</span><br />
+                                                            <span><b>City:</b></span> <span class="content">@nurse.Nurse.City.Name</span><br />
+                                                            <span><b>Zip Code:</b></span> <span class="content">@nurse.Nurse.City.ZipCode</span><br />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Basic Info"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="padding-top:30px">
+
+                                                        <div style="padding-top:10px;">
+                                                            <table class="table">
+                                                                <tr>
+                                                                    <th>Best time to contact you</th>
+                                                                    <td>@nurse.Nurse.ContactTime</td>
+                                                                </tr>
+
+                                                                <tr>
+                                                                    <th>May be contact your present employer?</th>
+                                                                    <td>@nurse.Nurse.ContactPresentEmployer</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Are you prevented from lawfully becoming employed in this country?</th>
+                                                                    <td>@nurse.Nurse.LawfullyBecomingEmployed</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Date available to work</th>
+                                                                    <td>@nurse.Nurse.DateAvailableToWork</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Hours per week to work</th>
+                                                                    <td>@nurse.Nurse.HoursPerWeek</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Are you avaiable to work:</th>
+                                                                    <td>@nurse.Nurse.AvailableToWork</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Do you have your own transportation?</th>
+                                                                    <td>@nurse.Nurse.Trasnportation</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Have you ever been excluded or been determined ineligible for participation in medicare?</th>
+                                                                    <td>@nurse.Nurse.IneligibleForParticipation</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Explanation</th>
+                                                                    <td>@nurse.Nurse.ReasonForIneligible</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Have you ever been convicted of any criminal activity?</th>
+                                                                    <td>@nurse.Nurse.CriminalActivity</td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Work Experience"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="padding-top:30px">
+
+                                                        <div style="padding-top:10px;">
+                                                            @foreach (var workExperience in nurse.Nurse.WorkExperiences)
+                                                            {
+                                                                <table class="table">
+                                                                    <tr>
+                                                                        <th>Employer Name</th>
+                                                                        <td>@workExperience.Employer</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Address</th>
+                                                                        <td>@workExperience.Address</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Telephone No</th>
+                                                                        <td>@workExperience.PhoneNo</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Starting/Present Job Title</th>
+                                                                        <td>@workExperience.JobTitle</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Employed From</th>
+                                                                        <td>@Convert.ToDateTime(workExperience.StartDate).ToShortDateString()</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Employed To</th>
+                                                                        <td>@Convert.ToDateTime(workExperience.EndDate).ToShortDateString()</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Starting Hourly Rates</th>
+                                                                        <td>@workExperience.HourlyRate</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Final Hourly Rates</th>
+                                                                        <td>@workExperience.FinalHourlyRate</td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <th>Supervisor Name</th>
+                                                                        <td>@workExperience.NameOfSupervisor</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Reason for leaving</th>
+                                                                        <td>@workExperience.ReasonForLeaving</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>May we contact your employer?</th>
+                                                                        <td>@workExperience.IsContactAllowed</td>
+                                                                    </tr>
+
+                                                                </table>
+                                                                <hr />
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Education"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="padding-top:30px">
+
+                                                        <div style="padding-top:10px;">
+                                                            @foreach (var education in nurse.Nurse.Educations)
+                                                            {
+                                                                <h3>@education.EducationType.Name</h3>
+                                                                <table class="table">
+                                                                    <tr>
+                                                                        <th>Complete Address</th>
+                                                                        <td>@education.CompleteAddress</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Attended From</th>
+                                                                        <td>@Convert.ToDateTime(education.AttendedFrom).ToShortDateString()</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Attended To</th>
+                                                                        <td>@Convert.ToDateTime(education.AttendedTo).ToShortDateString()</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Major</th>
+                                                                        <td>@education.Major</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Type Diploma/Degree</th>
+                                                                        <td>@education.Type</td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <th>Describe any specialized training,skills and extra-curricular activities</th>
+                                                                        <td>@education.SpecializedTraining</td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <th>Other Qualifications</th>
+                                                                        <td>@education.OtherQualification</td>
+                                                                    </tr>
+                                                                </table>
+
+                                                            }
+                                                            <h3>Registration/ Certification/ License</h3>
+                                                            @foreach (var certification in nurse.Nurse.Certifications)
+                                                            {
+                                                                <table class="table">
+                                                                    <tr>
+                                                                        <th>Type</th>
+                                                                        <td>@certification.CertificationType</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Number</th>
+                                                                        <td>@certification.CertificationNumber</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>State</th>
+                                                                        <td>@certification.CertificationState</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Expiration</th>
+                                                                        <td>@certification.DateOfExpiration</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Type Diploma/Degree</th>
+                                                                        <td>@certification.Type</td>
+                                                                    </tr>
+
+                                                                </table>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Other"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="padding-top:30px">
+
+                                                        <div style="padding-top:10px;">
+                                                            <h3>Personal/Professional References</h3>
+                                                            @foreach (var reference in nurse.Nurse.References)
+                                                            {
+                                                                <table class="table">
+                                                                    <tr>
+                                                                        <th>Name</th>
+                                                                        <td>@reference.Name</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Phone Number</th>
+                                                                        <td>@reference.PhoneNo</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Occupation</th>
+                                                                        <td>@reference.Occupation</td>
+                                                                    </tr>
+                                                                </table>
+                                                            }
+                                                            <h3>Emergency Contact</h3>
+                                                            <table class="table">
+                                                                <tr>
+                                                                    <th>Name</th>
+                                                                    <td>@nurse.Nurse.EmergencyContactName</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Relationship</th>
+                                                                    <td>@nurse.Nurse.EmergencyContactRelationship</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Address</th>
+                                                                    <td>@nurse.Nurse.EmergencyContactPhone</td>
+                                                                </tr>
+                                                            </table>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+                                    </TabItems>
+                                </SfTab>
+                            </div>
+                        </DetailTemplate>
+                    </GridTemplates>
+
+                    <GridColumns>
+                        <GridColumn Field="Nurse.FirstName" HeaderText="First Name" Width="110"> </GridColumn>
+                        <GridColumn Field="Nurse.LastName" HeaderText="Last Name" Width="110"></GridColumn>
+                        <GridColumn Field="Nurse.EmailAddress" HeaderText="Email Address" Width="110"></GridColumn>
+                        <GridColumn Field="Nurse.TelephoneNo" HeaderText="Telephone Number" Width="110"></GridColumn>
+                        <GridColumn Field="PrefferedRate" HeaderText="Rate Range Start" Width="110"></GridColumn>
+                        <GridColumn Field="PrefferedRateUpto" HeaderText="Rate Range End" Width="110"></GridColumn>
+                        <GridColumn Type="ColumnType.CheckBox" Width="50"></GridColumn>
+                        <GridColumn Width="100" TextAlign="TextAlign.Right">
+                            <Template Context="NurseContext">
+                                @{
+                                    var selectedNurse = (NurseContext as JobApply);
+                                    <SfButton @onclick="()=> SelectNurse(selectedNurse)">Accept</SfButton>
+                                }
+                            </Template>
+                        </GridColumn>
+                    </GridColumns>
+                </SfGrid>
+            </div>
+        </div>
+    </div>
+</div>
+
+<SfDialog ResizeHandles="@dialogResizeDirections" EnableResize="true" AllowDragging="true" IsModal="true" ShowCloseIcon="true" Width="400px" Visible="false" @ref="OfferSent">
+    <DialogEvents Closed="@OfferSentDialogClose"></DialogEvents>
+    <DialogPositionData X="center" Y="center"></DialogPositionData>
+    <DialogTemplates>
+        <Header>
+            <h3 class="m-0">Submit Proposed Rate</h3>
+        </Header>
+        <Content>
+            <EditForm Model="model" OnValidSubmit="SendOffer">
+                <DataAnnotationsValidator />
+                <div class="form-group rate_box">
+                    <span><span>Agency Rate:</span> @agencyRate</span>
+                    <span><span>Nurse Rate:</span> @nurseRate</span>
+                    <span>
+                        <span>Proposed Rate:</span>
+                        <span>
+                            <SfNumericTextBox @bind-Value="model.OfferedRate"></SfNumericTextBox>
+                            <ValidationMessage For="@(() => model.OfferedRate)" />
+                        </span>
+                    </span>
+                </div>
+
+                <SfButton>Submit</SfButton>
+            </EditForm>
+        </Content>
+    </DialogTemplates>
+    <DialogAnimationSettings Effect="@DialogEffect.Zoom"></DialogAnimationSettings>
+</SfDialog>
+
+<SfDialog ResizeHandles="@dialogResizeDirections" EnableResize="true" AllowDragging="true" IsModal="true" ShowCloseIcon="true" Height="800px" Width="700px" Visible="false" @ref="createServiceRequestDialog">
+    <DialogEvents Closed="@CreateServiceRequestDialogClose"></DialogEvents>
+    <DialogPositionData X="center" Y="center"></DialogPositionData>
+    <DialogTemplates>
+        <Header>
+            <h3 class="m-0">Create Service Request</h3>
+        </Header>
+        <Content>
+            <EditForm Model="@serviceRequest" OnValidSubmit="CreateSR" OnInvalidSubmit="CheckValidations">
+                <DataAnnotationsValidator />
+                <SfTab @bind-SelectedItem="SelectedPage" LoadOn="ContentLoad.Demand" CssClass="modal_SfTabs">
+                    <TabItems>
+                        <TabItem>
+                            <ChildContent>
+                                <TabHeader Text="SR Information"></TabHeader>
+                            </ChildContent>
+                            <ContentTemplate>
+                                <div class="chose_service">
+                                    <div class="inputFiled form-group">
+                                        <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ServiceListId" TValue="int" TItem="ServiceList" Placeholder="Select a Service" AllowFiltering="true" DataSource="@serviceList">
+                                            <DropDownListFieldSettings Text="Name" Value="ServiceListId"></DropDownListFieldSettings>
+                                        </SfDropDownList>
+                                        <ValidationMessage For="@(() => serviceRequest.ServiceListId)" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="SfCheck_box">
+                                        <div class="row">
+                                            <div class="row-md-6 col-lg-4">
+                                                <SfCheckBox @bind-Checked="serviceRequest.IsDischargeSummaryRequired">Requires a Discharge Summary</SfCheckBox>
+                                            </div>
+                                            <div class="row-md-6 col-lg-4">
+                                                <SfCheckBox @bind-Checked="serviceRequest.IsInitialAssesstmentRequired" @onchange="OnAssessmentChange">Requires Initial Assessment</SfCheckBox>
+                                                @if (serviceRequest.IsInitialAssesstmentRequired)
+                                                {
+                                                    <div>
+                                                        <h6>Re-assesstment every</h6>
+                                                        <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ReAssessmentFrequency" />
+                                                        <h6>month(s)</h6>
+                                                        <ValidationMessage For="@(() => serviceRequest.ReAssessmentFrequency)" />
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="row-md-6 col-lg-4">
+                                                <SfCheckBox @bind-Checked="serviceRequest.IsSupervisoryVisitsRequired" @onchange="OnSupervisoryVisitsChange">Requires Supervisory Visits</SfCheckBox>
+                                                @if (serviceRequest.IsSupervisoryVisitsRequired)
+                                                {
+                                                    <div>
+                                                        <h6>Re-Visit every</h6>
+                                                        <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ReVisitFrequency" />
+                                                        <h6>month(s)</h6>
+                                                        <ValidationMessage For="@(() => serviceRequest.ReVisitFrequency)" />
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="inputFiled form-group">
+                                            <h6 class="reqfrm_head text-left">Start Date</h6>
+                                            <SfDatePicker Min="@MinDate" Placeholder="MM/DD/YYYY" @bind-Value="@serviceRequest.Date"></SfDatePicker>
+                                            <ValidationMessage For="@(() => serviceRequest.Date)" />
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="inputFiled form-group">
+                                            <h6 class="reqfrm_head text-left">Start Time</h6>
+                                            <SfTimePicker Placeholder="HH:MM AM" @bind-Value="@serviceRequest.Time"></SfTimePicker>
+                                            <ValidationMessage For="@(() => serviceRequest.Time)" />
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="inputFiled form-group">
+                                            <h6 class="reqfrm_head text-left">End Date</h6>
+                                            <SfDatePicker Placeholder="MM/DD/YYYY" @bind-Value="@serviceRequest.EndDate"></SfDatePicker>
+                                            <ValidationMessage For="@(() => serviceRequest.EndDate)" />
+                                        </div>
+                                        @if (serviceRequest.Date != null && serviceRequest.EndDate != null)
+                                        {
+                                            @if (DateTime.Compare((DateTime)serviceRequest.Date, (DateTime)serviceRequest.EndDate) > 0)
+                                            {
+                                                <label class="validation-message">End date should be greater than start date</label>
+                                            }
+                                        }
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="inputFiled form-group">
+                                            <h6 class="reqfrm_head text-left">End Time</h6>
+                                            <SfTimePicker Placeholder="HH:MM AM" @bind-Value="@serviceRequest.EndTime"></SfTimePicker>
+                                            <ValidationMessage For="@(() => serviceRequest.EndTime)" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="totalHoursBox">
+                                    <div class="inputFiled form-group">
+                                        <h6 class="reqfrm_head text-left">Total Hours</h6>
+                                        <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.TotalHours" />
+                                    </div>
+                                </div>
+                                <div class="select_freq modal_select_freq">
+                                    <h6 class="reqfrm_head text-left">Select frequency</h6>
+                                    <div class="weekDays-selector text-left">
+                                        <ul>
+                                            <li>
+                                                <InputCheckbox @bind-Value="serviceRequest.Days.Sunday" id="weekday-sun" class="weekday" />
+                                                <label for="weekday-sun">Sunday</label>
+                                            </li>
+                                            <li>
+                                                <InputCheckbox @bind-Value="serviceRequest.Days.Monday" id="weekday-mon" class="weekday" />
+                                                <label for="weekday-mon">Monday</label>
+                                            </li>
+                                            <li>
+                                                <InputCheckbox @bind-Value="serviceRequest.Days.Tuesday" id="weekday-tue" class="weekday" />
+                                                <label for="weekday-tue">Tuesday</label>
+                                            </li>
+                                            <li>
+                                                <InputCheckbox @bind-Value="serviceRequest.Days.Wednesday" id="weekday-wed" class="weekday" />
+                                                <label for="weekday-wed">Wednesday</label>
+                                            </li>
+                                            <li>
+                                                <InputCheckbox @bind-Value="serviceRequest.Days.Thursday" id="weekday-thu" class="weekday" />
+                                                <label for="weekday-thu">Thursday</label>
+                                            </li>
+                                            <li>
+                                                <InputCheckbox @bind-Value="serviceRequest.Days.Friday" id="weekday-fri" class="weekday" />
+                                                <label for="weekday-fri">Friday</label>
+                                            </li>
+                                            <li>
+                                                <InputCheckbox @bind-Value="serviceRequest.Days.Saturday" id="weekday-sat" class="weekday" />
+                                                <label for="weekday-sat">Saturday</label>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    @if (freqMsg)
+                                    {
+                                        <label class="validation-message">Frequency is required</label>
+                                    }
+                                </div>
+                                <div class="skilled_nurse_sec">
+                                    <fieldset>
+                                        <legend class="transform_none">Rates</legend>
+                                        <div class="d-flex">
+                                            <div>
+                                                <h5>Agency Rate(To Client):</h5>
+                                                <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.AgencyRate" />
+                                                <ValidationMessage For="@(() => serviceRequest.AgencyRate)" />
+                                            </div>
+                                            <div>
+                                                <h5>Care Giver Rate:</h5>
+                                                <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.CareGiverRate" />
+                                                <ValidationMessage For="@(() => serviceRequest.CareGiverRate)" />
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+
+                                <div class="text-center">
+                                    <button type="button" @onclick="GoToPatientInfoTab" class="create_account btn-theme border ">
+                                        Next
+                                    </button>
+                                </div>
+                            </ContentTemplate>
+                        </TabItem>
+                        <TabItem>
+                            <ChildContent>
+                                <TabHeader Text="Patient Information"></TabHeader>
+                            </ChildContent>
+                            <ContentTemplate>
+                                <div class="inputFiled form-group">
+                                    <SfTextBox Placeholder="First Name" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.FirstName" Type="InputType.Text" class="form-control" />
+                                    <ValidationMessage For="@(() => serviceRequest.FirstName)" />
+                                </div>
+                                <div class="inputFiled form-group">
+                                    <SfTextBox Placeholder="Middle Name" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.MiddleInitial" Type="InputType.Text" class="form-control" />
+                                    <ValidationMessage For="@(() => serviceRequest.MiddleInitial)" />
+                                </div>
+                                <div class="inputFiled form-group">
+                                    <SfTextBox Placeholder="Last Name" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.LastName" Type="InputType.Text" class="form-control" />
+                                    <ValidationMessage For="@(() => serviceRequest.LastName)" />
+                                </div>
+                                <div class="inputFiled form-group">
+                                    <SfNumericTextBox Min="1" Placeholder="Age" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.Age" class="form-control" />
+                                    <ValidationMessage For="@(() => serviceRequest.Age)" />
+                                </div>
+                                <div class="inputFiled form-group">
+                                    <SfTextBox Placeholder="Address" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.AddressLine1" Type="InputType.Text" class="form-control" />
+                                    <ValidationMessage For="@(() => serviceRequest.AddressLine1)" />
+                                </div>
+                                <div class="inputFiled form-group">
+                                    <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.StateId" TValue="int" TItem="State" Placeholder="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => serviceRequest.StateId)" />
+                                </div>
+                                <div class="inputFiled form-group">
+                                    <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.CityId" TValue="int" TItem="City" Placeholder="City" AllowFiltering="true" DataSource="@cityList">
+                                        <DropDownListEvents TItem="City" TValue="int" ValueChange="OnCityChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="NameAndZipcode" Value="CityId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => serviceRequest.CityId)" />
+                                </div>
+                                <div class="inputFiled form-group brow_fl">
+                                    <SfTextBox Placeholder="Postal Code" FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" disabled @bind-Value="serviceRequest.PostalCode" class="form-control" />
+                                    <ValidationMessage For="@(() => serviceRequest.PostalCode)" />
+                                </div>
+                                <div class="inputFiled form-group brow_fl">
+                                    <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.GenderPreference" TValue="string" TItem="GenderPreference" Placeholder="Gender" AllowFiltering="true" DataSource="@genderPreferences">
+                                        <DropDownListFieldSettings Text="Name" Value="Name"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => serviceRequest.GenderPreference)" />
+                                </div>
+
+                                <div class="inputFiled form-group">
+                                    <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.JobTitleId" TValue="int" TItem="JobTitle" Placeholder="Request" AllowFiltering="true" DataSource="@jobTitleList">
+                                        <DropDownListFieldSettings Text="Title" Value="JobTitleId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => serviceRequest.JobTitleId)" />
+                                </div>
+
+                                <div class="inputFiled form-group">
+                                    <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ClientPaymentMethod" TValue="string" TItem="ClientPaymentMethod" Placeholder="How will Client Pay" AllowFiltering="true" DataSource="@clientPaymentMethods">
+                                        <DropDownListFieldSettings Text="Value" Value="Value"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => serviceRequest.ClientPaymentMethod)" />
+                                </div>
+
+                                <div class="inputFiled form-group">
+                                    <SfTextBox Placeholder="Job Description" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.MoreInformation" Type="InputType.Text" class="form-control" Multiline="true" />
+                                    <ValidationMessage For="@(() => serviceRequest.MoreInformation)" />
+                                </div>
+                                <div class="text-left form-group">
+                                    <SfCheckBox Label="Is Responsible Party Same As Care Recipient" @bind-Checked="serviceRequest.IsResponsiblePartySameAsCareRecipient" @onchange="@onCheckBoxValueChange"></SfCheckBox>
+                                </div>
+                                <div id="Responsible_Party">
+                                    <div class="inputFiled form-group">
+                                        <SfTextBox Placeholder="Name" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ResponsiblePartyName" disabled="@isButtonDisable" Type="InputType.Text" class="form-control" />
+                                    </div>
+                                    <div class="inputFiled form-group">
+                                        <SfTextBox Placeholder="Email" FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" class="form-control" @bind-Value="@serviceRequest.ResponsiblePartyEmail" />
+                                    </div>
+                                    <div class="inputFiled form-group">
+                                        <SfMaskedTextBox FloatLabelType="@FloatLabelType.Auto" Placeholder="Phone No" @bind-Value="serviceRequest.ResponsiblePartyTelephoneNumber" Mask="000-000-0000" class="form-control" />
+                                    </div>
+                                    <div class="inputFiled form-group">
+                                        <SfTextBox Placeholder="Relationship To Care Recipient" FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" class="form-control" disabled="@isButtonDisable" @bind-Value="@serviceRequest.ResponsiblePartyRelation" />
+                                    </div>
+                                </div>
+                                <div class="pat_buttobox">
+                                    <a @onclick="GoToSRInfoTab" class="create_account btn-theme border prev_button">
+                                        Back
+                                    </a>
+                                    <button type="button" @onclick="GoToTasksTab" class="create_account btn-theme border ">
+                                        Next
+                                    </button>
+                                </div>
+                            </ContentTemplate>
+                        </TabItem>
+                        <TabItem>
+                            <ChildContent>
+                                <TabHeader Text="Tasks"></TabHeader>
+                            </ChildContent>
+                            <ContentTemplate>
+                                @if (agencyData.UserDetails != null)
+                                {
+                                    <SfGrid @ref="taskGrid" TValue="TaskListTemplate" AllowPaging="true" AllowSelection="true" Toolbar="@(new List<string>() { "Search" })">
+                                        <GridSelectionSettings CheckboxOnly="true" PersistSelection="true"></GridSelectionSettings>
+                                        <SfDataManager Url="@($"https://gahealthcarenurseswebapi.azurewebsites.net/api/TaskListTemplate/GetAll?id={agencyData.UserDetails.UserId}")" Adaptor="Adaptors.WebApiAdaptor"></SfDataManager>
+                                        <GridPageSettings PageSizes="true" PageSize="10" EnableQueryString="true"></GridPageSettings>
+                                        <GridColumns>
+                                            <GridColumn Type="ColumnType.CheckBox" Width="50"></GridColumn>
+                                            <GridColumn Field="@nameof(TaskListTemplate.TaskListTemplateId)" HeaderText="Id" IsPrimaryKey="true" TextAlign="TextAlign.Left" Width="50"></GridColumn>
+                                            <GridColumn Field="@nameof(TaskListTemplate.TaskName)" HeaderText="Task Name" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+                                            <GridColumn Field="TaskListCategory.Category" TextAlign="TextAlign.Left" HeaderText="Task Category" Width="120"></GridColumn>
+                                        </GridColumns>
+                                    </SfGrid>
+                                    <div class="pat_buttobox">
+                                        <a @onclick="GoToPatientInfoTab" class="create_account btn-theme border prev_button">
+                                            Back
+                                        </a>
+                                        <button type="submit" class="create_account btn-theme border ">
+                                            Create
+                                        </button>
+                                    </div>
+                                }
+                            </ContentTemplate>
+                        </TabItem>
+                    </TabItems>
+                </SfTab>
+            </EditForm>
+        </Content>
+    </DialogTemplates>
+    <DialogAnimationSettings Effect="@DialogEffect.Zoom"></DialogAnimationSettings>
+</SfDialog>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code{
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    IEnumerable<JobApplyForAgency> jobsApplied;
+    List<Status> statusList = new List<Status>();
+    List<JobApply> jobs = new List<JobApply>();
+    public string SelectedJob { get; set; }
+    public int? RowIndex { get; set; }
+    public Job SelectedJobData { get; set; }
+    SfDialog OfferSent;
+    SfDialog createServiceRequestDialog;
+    SfGrid<JobApply> NursesGrid;
+    private ResizeDirection[] dialogResizeDirections { get; set; } = new ResizeDirection[] { ResizeDirection.All };
+    string agencyRate = string.Empty;
+    string nurseRate = string.Empty;
+    SendJobOfferToNurseViewModel model = new SendJobOfferToNurseViewModel();
+    int SelectedPage { get; set; } = 0;
+    CreateServiceRequestViewModel serviceRequest = new CreateServiceRequestViewModel();
+    DateTime TimeValue { get; set; } = DateTime.Now;
+    List<ServiceList> serviceList = new List<ServiceList>();
+    bool freqMsg = false;
+    bool isButtonDisable { get; set; } = false;
+    DateTime MinDate { get; set; } = DateTime.Today.Date;
+    List<State> stateList = new List<State>();
+    List<City> cityList = new List<City>();
+    List<JobTitle> jobTitleList = new List<JobTitle>();
+    SfGrid<TaskListTemplate> taskGrid;
+    bool isLoading = false;
+    List<GenderPreference> genderPreferences = new List<GenderPreference>() {
+        new GenderPreference(){ Id=1, Name= "Male" },
+        new GenderPreference(){ Id= 2, Name= "Female" },
+        new GenderPreference(){ Id= 3, Name= "Unspecified" }
+     };
+    List<ClientPaymentMethod> clientPaymentMethods = new List<ClientPaymentMethod>
+{
+        new ClientPaymentMethod(){Id=1, Value="Savings"},
+        new ClientPaymentMethod(){Id=2, Value="Income"},
+        new ClientPaymentMethod(){Id=3, Value="Family Support"},
+        new ClientPaymentMethod(){Id=4, Value="Long-term care i"},
+        new ClientPaymentMethod(){Id=5, Value="VA Benefits"},
+        new ClientPaymentMethod(){Id=6, Value="Medicaid"},
+        new ClientPaymentMethod(){Id=7, Value="Other"},
+    };
+    List<GetServiceRequestListResponseModel> serviceRequests = new List<GetServiceRequestListResponseModel>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Status/GetByTypeId?id={3}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        statusList = (JsonConvert.DeserializeObject<Response<List<Status>>>(response)).Data;
+
+        var serviceRequestResponseMessage = await Http.GetAsync(wsp.Path + "ServiceList");
+        var serviceRequestResponse = serviceRequestResponseMessage.Content.ReadAsStringAsync().Result;
+        serviceList = (JsonConvert.DeserializeObject<Response<List<ServiceList>>>(serviceRequestResponse)).Data;
+
+        var stateResponseMessage = await Http.GetAsync(wsp.Path + "State");
+        var stateResponse = stateResponseMessage.Content.ReadAsStringAsync().Result;
+        stateList = (JsonConvert.DeserializeObject<Response<List<State>>>(stateResponse)).Data;
+
+        var responseJobTitle = await Http.GetAsync(wsp.Path + "JobTitle/GetAll");
+        var responseData = responseJobTitle.Content.ReadAsStringAsync().Result;
+        jobTitleList = (JsonConvert.DeserializeObject<Response<List<JobTitle>>>(responseData)).Data;
+        isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData != null)
+            {
+                await jsRunTime.InvokeAsync<object>("removeHeaderCheckBox");
+
+                await GetAgencyServiceRequests();
+            }
+            else
+            {
+                navigation.NavigateTo("agency/sign-in");
+            }
+        }
+    }
+
+    public void OfferSentDialogClose()
+    {
+        OfferSent.Hide();
+    }
+
+    public async Task RowSelecthandler(GetServiceRequestListResponseModel model)
+    {
+        SelectedJob = model.Skill;
+        RowIndex = model.JobId;
+        SelectedJobData = null;
+        agencyRate = $"${model.PreferredRate}";
+        var responseMessage = await Http.GetAsync(wsp.Path + $"JobApply/GetByJobIdAndStatusId?jobId={model.JobId}&statusId={4}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        jobs = (JsonConvert.DeserializeObject<Response<List<JobApply>>>(response)).Data;
+    }
+
+    public async Task GetAgencyServiceRequests()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Job/GetJobsByEmployerId?employerId={agencyData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        serviceRequests = (JsonConvert.DeserializeObject<Response<List<GetServiceRequestListResponseModel>>>(response)).Data.OrderByDescending(x => x.JobId).ToList();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task OnStatusChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, Status> args)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"JobApplyForEmployer/GetByStatusId?employerId={agencyData.UserDetails.UserId}&statusId={args.ItemData.StatusId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        jobsApplied = (JsonConvert.DeserializeObject<Response<IEnumerable<JobApplyForAgency>>>(response)).Data;
+    }
+
+    public async Task SendOffer()
+    {
+        OfferSentDialogClose();
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "JobApply/HireNurse", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            SelectedJob = null;
+            jobs = new List<JobApply>();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task SelectNurse(JobApply job)
+    {
+        nurseRate = $"${job.PrefferedRate} to ${job.PrefferedRateUpto}";
+        model = new SendJobOfferToNurseViewModel();
+        model.JobId = job.JobId;
+        model.NurseId = job.NurseId;
+        OfferSent.Show();
+    }
+
+    public async Task OpenCreateServiceRequestDialog()
+    {
+        serviceRequest = new CreateServiceRequestViewModel();
+        serviceRequest.EmployerId = agencyData.UserDetails.UserId;
+        SelectedPage = 0;
+        isButtonDisable = false;
+        await createServiceRequestDialog.Show();
+    }
+
+    public async Task CreateServiceRequestDialogClose()
+    {
+        await createServiceRequestDialog.Hide();
+    }
+
+    public void ServiceListHasChanged(int value)
+    {
+        serviceRequest.ServiceListId = value;
+    }
+
+    protected void onCheckBoxValueChange(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (Convert.ToBoolean(args.Value))
+        {
+            serviceRequest.ResponsiblePartyName = (serviceRequest.FirstName + " " + serviceRequest.LastName);
+            serviceRequest.ResponsiblePartyEmail = null;
+            serviceRequest.ResponsiblePartyTelephoneNumber = null;
+            isButtonDisable = true;
+        }
+        else
+        {
+            serviceRequest.ResponsiblePartyName = null;
+            serviceRequest.ResponsiblePartyEmail = null;
+            serviceRequest.ResponsiblePartyTelephoneNumber = null;
+            isButtonDisable = false;
+        }
+    }
+
+    protected async Task OnStateChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, State> args)
+    {
+        serviceRequest.StateId = args.ItemData.StateId;
+        if (serviceRequest.StateId == 0)
+        {
+            cityList.Clear();
+        }
+        else
+        {
+            await LoadCities(serviceRequest.StateId);
+        }
+    }
+
+    protected async Task OnCityChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, City> args)
+    {
+        if (args.ItemData != null)
+        {
+            serviceRequest.CityId = args.ItemData.CityId;
+            var responseMessage = await Http.GetAsync(wsp.Path + $"City/GetById?id={serviceRequest.CityId}");
+            var response = responseMessage.Content.ReadAsStringAsync().Result;
+            City city = (JsonConvert.DeserializeObject<Response<City>>(response)).Data;
+            serviceRequest.PostalCode = city.ZipCode.ToString();
+        }
+    }
+
+    protected async Task LoadCities(int stateId)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"City/GetByStateId?stateId={stateId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        cityList = (JsonConvert.DeserializeObject<Response<List<City>>>(response)).Data;
+    }
+
+    public void GoToPatientInfoTab()
+    {
+        SelectedPage = 1;
+        StateHasChanged();
+    }
+
+    public void GoToSRInfoTab()
+    {
+        SelectedPage = 0;
+        StateHasChanged();
+    }
+
+    public void GoToTasksTab()
+    {
+        SelectedPage = 2;
+        StateHasChanged();
+    }
+
+    public async Task CreateSR()
+    {
+        try
+        {
+            if (DateTime.Compare((DateTime)serviceRequest.Date, (DateTime)serviceRequest.EndDate) > 0)
+            {
+                SelectedPage = 0;
+                return;
+            }
+
+            var frequencyList = GetFrequencyValue.GetFrequency(serviceRequest.Days);
+            if (!frequencyList.ToList().Any(x => x.Value == true))
+            {
+                freqMsg = true;
+                SelectedPage = 0;
+                return;
+            }
+
+            var selectedTasks = await taskGrid.GetSelectedRecords();
+            if (selectedTasks.Count == 0)
+            {
+                toastService.ShowWarning("Please select at least one task");
+                return;
+            }
+            await CreateServiceRequestDialogClose();
+            isLoading = true;
+
+            serviceRequest.Date = serviceRequest.Date.Value.Date + serviceRequest.Time.Value.TimeOfDay;
+            serviceRequest.EndDate = serviceRequest.EndDate.Value.Date + serviceRequest.EndTime.Value.TimeOfDay;
+            string frequencyValue = string.Empty;
+            foreach (var frequency in frequencyList)
+            {
+                if (frequency.Value)
+                {
+                    frequencyValue += frequency.Day + ",";
+                }
+            }
+            var lastComma = frequencyValue.LastIndexOf(',');
+            frequencyValue = frequencyValue.Remove(lastComma, 1);
+            serviceRequest.Frequency = frequencyValue;
+
+            foreach (var task in selectedTasks)
+            {
+                serviceRequest.TaskListTemplates.Add(new TaskListAddTemplateViewModel
+                {
+                    TaskName = task.TaskName,
+                    TaskDescription = task.TaskListCategory.Category
+                });
+            }
+
+            var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "Job/CreateServiceRequest", serviceRequest);
+            var response = responseMessage.Content.ReadAsStringAsync().Result;
+            var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+            if (result.Status == "Success")
+            {
+                toastService.ShowSuccess(result.Message);
+                await GetAgencyServiceRequests();
+            }
+            else
+            {
+                toastService.ShowError(result.Message);
+            }
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError(ex.Message);
+            isLoading = false;
+        }
+        StateHasChanged();
+    }
+
+    public void CheckValidations(EditContext editContext)
+    {
+        if (serviceRequest.ServiceListId == 0 || serviceRequest.Date == null || serviceRequest.Time == null || serviceRequest.EndDate == null || serviceRequest.EndTime == null || serviceRequest.AgencyRate == null || serviceRequest.CareGiverRate == null || (serviceRequest.IsInitialAssesstmentRequired && serviceRequest.ReAssessmentFrequency == null) || (serviceRequest.IsSupervisoryVisitsRequired && serviceRequest.ReVisitFrequency == null))
+        {
+            SelectedPage = 0;
+        }
+        else
+        {
+            SelectedPage = 1;
+        }
+    }
+
+    public async Task CreateDuplicateSR()
+    {
+        if (SelectedJobData == null)
+        {
+            toastService.ShowWarning("Select a service request");
+            return;
+        }
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Job/CreateDuplicateServiceRequest?jobId={SelectedJobData.JobId}&employerId={agencyData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await GetAgencyServiceRequests();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public void OnAssessmentChange()
+    {
+        if (!serviceRequest.IsInitialAssesstmentRequired)
+        {
+            serviceRequest.ReAssessmentFrequency = null;
+        }
+        StateHasChanged();
+    }
+
+    public void OnSupervisoryVisitsChange()
+    {
+        if (!serviceRequest.IsSupervisoryVisitsRequired)
+        {
+            serviceRequest.ReVisitFrequency = null;
+        }
+        StateHasChanged();
+    }
+}

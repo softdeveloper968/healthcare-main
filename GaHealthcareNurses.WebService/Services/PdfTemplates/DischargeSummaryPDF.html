@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .fieldset_box {
+            display: block;
+            border: 1px solid #ccc;
+            border-image: initial;
+            margin: 0 0 18px;
+            position: relative;
+            padding: 10px 10px 6px;
+        }
+
+        .legend_txt {
+            display: block;
+            text-transform: uppercase;
+            font-size: 13px;
+            font-weight: 500;
+            background: #fff;
+            top: -8px;
+            position: absolute;
+            left: 10px;
+        }
+
+        .skilled_sec {
+            padding: 25px 5px;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+            .skilled_sec h2 {
+                margin: 0 0 8px;
+                text-align: center;
+                font-size: 22px;
+                text-transform: uppercase;
+                font-weight: 600;
+                color: #222;
+            }
+
+            .skilled_sec h6.text-end {
+                text-align: right;
+                margin: 0 0 10px;
+                font-size: 14px;
+                font-weight: 500;
+                color: #222;
+            }
+
+            .skilled_sec h5 {
+                text-align: center;
+                margin: 0 0 18px;
+                font-size: 15px;
+                font-weight: 600;
+                color: #666;
+            }
+
+        .radio_btns {
+            margin: 0 0 20px;
+        }
+
+            .radio_btns label {
+                display: inline-block;
+                align-items: normal;
+                font-size: 13px;
+                font-weight: 500;
+                padding-right: 10px;
+                cursor: pointer;
+            }
+
+                .radio_btns label input {
+                    margin: 0 4px 0 0;
+                    vertical-align: middle;
+                }
+
+        .checkbox_list label {
+            display: table;
+            width: auto;
+            padding: 4px 3px;
+            font-size: 12px;
+            font-weight: 500;
+            vertical-align: middle;
+            cursor: pointer;
+            line-height: 12px;
+        }
+
+        .checkbox_list {
+            padding: 5px 0 0;
+        }
+
+            .checkbox_list label input {
+                margin: 0 4px 0 0;
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+        .skilled_sec h3 {
+            font-size: 16px;
+            text-transform: uppercase;
+            font-weight: 600;
+            text-align: center;
+            margin: 0;
+            padding: 10px 0;
+        }
+
+        .form-group {
+            margin: 0 0 15px;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 13px;
+                font-weight: 500;
+                color: #666;
+                margin: 0 0 3px;
+            }
+
+        .form-control {
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 100%;
+            padding: 6px 12px;
+            outline: none;
+        }
+
+        textarea.form-control {
+            height: 65px;
+        }
+
+        .checkbox_list td {
+            border: none;
+            padding: 0;
+        }
+
+        .checkbox_list label span {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+            .checkbox_list label span:first-child {
+                width: 16px;
+                min-width: 16px;
+                max-width: 16px;
+            }
+    </style>
+</head>
+<body>
+    <div class="skilled_sec">
+        <h2>Skilled Nurse Discharge Summary</h2>
+        <h6 class="text-end">[[CurrentDate]]</h6>
+        <h5>Patient: [[PatientName]]</h5>
+        <div class="radio_btns">
+            <label><input type="radio" name="test1" [[DischargeChecked]] />Discharge</label>
+            <label><input type="radio" name="test1" [[TransferChecked]] />Transfer</label>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 60px;">Reason</span>
+            <div class="checkbox_list">
+                <table style="width:100%;border: 0;border-spacing: 0;">
+                    <tr>
+                        <td><label><span><input type="checkbox" [[NoFurtherCareNeededChecked]] /></span><span>No further skilled care needed</span></label></td>
+                        <td><label><span><input type="checkbox" [[MovedOutOfServiceAreaChecked]] /></span><span>Moved out of service area</span></label></td>
+                        <td><label><span><input type="checkbox" [[TransferredToAnotherAgencyChecked]] /></span><span>Transferred to another Agency</span></label></td>
+                    </tr>
+                    <tr>
+                        <td><label><span><input type="checkbox" [[PhysicianRequestChecked]] /></span><span>Physician Request</span></label></td>
+                        <td><label><span><input type="checkbox" [[FamilyAssumeResponsibilityChecked]] /></span><span>Family/Friends assume responsibility</span></label></td>
+                        <td><label><span><input type="checkbox" [[AdmittedToHospitalChecked]] /></span><span>Admitted to Hospital</span></label></td>
+                    </tr>
+                    <tr>
+                        <td><label><span><input type="checkbox" [[DeathChecked]] /></span><span>Death</span></label></td>
+                        <td><label><span><input type="checkbox" [[OtherReasonChecked]] /></span><span>Other:</span></label></td>
+                        <td><label><span><input type="checkbox" [[PatientOrFamilyRefusedServicesChecked]] /></span><span>Patient/Family refused services</span></label></td>
+                    </tr>
+                    <tr>
+                        <td><label><span><input type="checkbox" [[AdmittedToSkilledNursingFacilityChecked]] /></span><span>Admitted to Skilled Nursing Facility</span></label></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 115px;">Mental Status</span>
+            <div class="checkbox_list">
+                <table style="width:100%;border: 0;border-spacing: 0;">
+                    <tr>
+                        <td><label><span><input type="checkbox" [[AlertChecked]] /></span><span>Alert</span></label></td>
+                        <td><label><span><input type="checkbox" [[ForgetfulChecked]] /></span><span>Forgetful</span></label></td>
+                        <td><label><span><input type="checkbox" [[ConfusedChecked]] /></span><span>Confused</span></label></td>
+                    </tr>
+                    <tr>
+                        <td><label><span><input type="checkbox" [[OrientedChecked]] /></span><span>Oriented</span></label></td>
+                        <td><label><span><input type="checkbox" [[DisorientedChecked]] /></span><span>Disoriented</span></label></td>
+                        <td><label><span><input type="checkbox" [[DepressedChecked]] /></span><span>Depressed</span></label></td>
+                    </tr>
+                    <tr>
+                        <td><label><span><input type="checkbox" [[OtherChecked]] /></span><span>Other:</span></label></td>
+                        <td><label><span><input type="checkbox" [[ComatoseChecked]] /></span><span>Comatose</span></label></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 153px;">Functional Ability</span>
+            <div class="checkbox_list">
+                <table style="width:100%;border: 0;border-spacing: 0;">
+                    <tr>
+                        <td><label><span><input type="checkbox" [[IndependentChecked]] /></span><span>Independent</span></label></td>
+                        <td><label><span><input type="checkbox" [[PartiallyDependentChecked]] /></span><span>Partially Dependent</span></label></td>
+                        <td><label><span><input type="checkbox" [[TotallyDependentChecked]] /></span><span>Totally Dependent</span></label></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 215px;">Comments/Recommentions</span>
+            <div class="checkbox_list full_width">
+                <div>
+                    <label><span><input type="checkbox" [[DiscussionWithPatientOrFamilyChecked]] /></span><span>Discussed in advance with patient/caregiver/family and Physician</span></label>
+                </div>
+                <div>
+                    <label><span><input type="checkbox" [[CompletedViaTelephoneChecked]] /></span><span>Completed via Telephone</span></label>
+                </div>
+                <div>
+                    <label><span><input type="checkbox" [[MutualAgreementForDischargeChecked]] /></span><span>Mutual agreement for discharge from homecare services (If not mutual agreement, explain below)</span></label>
+                </div>
+            </div>
+        </div>
+        <h3>Goal Status</h3>
+        <div class="form-group">
+            <label>Goals</label>
+            <textarea class="form-control" >[[Goals]]</textarea>
+        </div>
+        <div class="form-group">
+            <label>Comments</label>
+            <textarea class="form-control" >[[Comments]]</textarea>
+        </div>
+        <h3>Interventions</h3>
+        <div class="form-group">
+            <label>Interventions</label>
+            <textarea class="form-control" >[[Interventions]]</textarea>
+        </div>
+        <div class="form-group">
+            <label>Response to Interventions</label>
+            <textarea class="form-control" >[[ResponseToInterventions]]</textarea>
+        </div>
+    </div>
+</body>
+</html>

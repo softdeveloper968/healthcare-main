@@ -1,0 +1,220 @@
+﻿@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@inject IJSRuntime jsRunTime
+@using Microsoft.JSInterop
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Popups
+@using GaHealthcareNurses.Entity.Common;
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+
+<EditForm Model="model" OnValidSubmit="CompleteDischargeSummary">
+    <DataAnnotationsValidator />
+    <div class="skilled_nurse_sec">
+        <h2>Skilled Nurse Discharge Summary</h2>
+        <h5>@DateTime.Now.ToString("MM/dd/yyyy")</h5>
+        <h3>Patient: @model.PatientName</h3>
+        <div class="form-group">
+            <SfRadioButton Disabled="View" Label="Discharge" Name="status" Value="Discharge" @bind-Checked="model.Type"></SfRadioButton>
+            <SfRadioButton Disabled="View" Label="Transfer" Name="status" Value="Transfer" @bind-Checked="model.Type"></SfRadioButton>
+            <ValidationMessage For="@(() => model.Type)" />
+        </div>
+        <fieldset>
+            <legend>Reason</legend>
+            <SfCheckBox Disabled="View" @bind-Checked="model.NoFurtherCareNeeded">No further skilled care needed</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.MovedOutOfServiceArea">Moved out of service area</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.TransferredToAnotherAgency">Transferred to another Agency</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.PhysicianRequest">Physician Request</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.FamilyAssumeResponsibility">Family/Friends assume responsibility</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.AdmittedToHospital">Admitted to Hospital</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Death">Death</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.OtherReason">Other:</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.PatientOrFamilyRefusedServices">Patient/Family refused services</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.AdmittedToSkilledNursingFacility">Admitted to Skilled Nursing Facility</SfCheckBox>
+        </fieldset>
+        <fieldset>
+            <legend>Mental Status</legend>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Alert">Alert</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Forgetful">Forgetful</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Confused">Confused</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Oriented">Oriented</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Disoriented">Disoriented</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Depressed">Depressed</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Other">Other:</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Comatose">Comatose</SfCheckBox>
+        </fieldset>
+        <fieldset>
+            <legend>Functional Ability</legend>
+            <SfCheckBox Disabled="View" @bind-Checked="model.Independent">Independent</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.PartiallyDependent">Partially Dependent</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.TotallyDependent">Totally Dependent</SfCheckBox>
+        </fieldset>
+        <fieldset class="comments_sec">
+            <legend>Comments/Recommendations</legend>
+            <SfCheckBox Disabled="View" @bind-Checked="model.DiscussionWithPatientOrFamily">Discussed in advance with patient/caregiver/family and Physician</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.CompletedViaTelephone">Completed via Telephone</SfCheckBox>
+            <SfCheckBox Disabled="View" @bind-Checked="model.MutualAgreementForDischarge">Mutual agreement for discharge from homecare services (If not mutual agreement, explain below)</SfCheckBox>
+        </fieldset>
+        <h4>Goal Status</h4>
+        <div class="form-group">
+            <label>Goals</label>
+            <SfTextBox Enabled="!View" Multiline="true" @bind-Value="model.Goals"></SfTextBox>
+        </div>
+        <div class="form-group">
+            <label>Comments</label>
+            <SfTextBox Enabled="!View" Multiline="true" @bind-Value="model.Comments"></SfTextBox>
+        </div>
+        <h4>Interventions</h4>
+        <div class="form-group">
+            <label>Interventions</label>
+            <SfTextBox Enabled="!View" Multiline="true" @bind-Value="model.Interventions"></SfTextBox>
+        </div>
+        <div class="form-group">
+            <label>Response to Interventions</label>
+            <SfTextBox Enabled="!View" Multiline="true" @bind-Value="model.ResponseToInterventions"></SfTextBox>
+        </div>
+        @if (!View)
+        {
+            <div class="ds_btns">
+                <button @onclick="NavigateToDischargeSummariesGrid" type="button" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        }
+        @if (View && Role == UserRoles.Employer.ToString())
+        {
+            <div class="ds_btns">
+                <button @onclick="() => AcceptOrRejectDischargeSummary((int)DischargeSummaryStatus.Verified)" type="button" class="btn btn-success">Accept</button>
+                <button @onclick="OpenRejectDischargeSummaryDialog" type="button" class="btn btn-danger">Reject</button>
+            </div>
+        }
+
+    </div>
+</EditForm>
+
+<SfDialog IsModal="true" ShowCloseIcon="true" Width="500px" Visible="false" @ref="rejectDischargeSummarydialog">
+    <DialogEvents Closed="CloseRejectDischargeSummaryDialog"></DialogEvents>
+    <DialogPositionData X="center" Y="center"></DialogPositionData>
+    <DialogTemplates>
+        <Header>
+            Reject Discharge Summary
+        </Header>
+        <Content>
+            <EditForm Model="acceptOrRejectDischargeSummary" OnValidSubmit="() => AcceptOrRejectDischargeSummary((int)DischargeSummaryStatus.Rejected)">
+                <DataAnnotationsValidator />
+                <div class="form-group">
+                    <label>Reject Reason</label>
+                    <SfTextBox Multiline="true" @bind-Value="acceptOrRejectDischargeSummary.RejectionReason"></SfTextBox>
+                    <ValidationMessage For="@(() => acceptOrRejectDischargeSummary.RejectionReason)" />
+                </div>
+                <SfButton type="submit">Submit</SfButton>
+            </EditForm>
+        </Content>
+    </DialogTemplates>
+    <DialogAnimationSettings Effect="@DialogEffect.Zoom"></DialogAnimationSettings>
+</SfDialog>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    SfDialog rejectDischargeSummarydialog;
+    DischargeSummaryRequestModel model = new DischargeSummaryRequestModel();
+    LoginViewModel<UserDetails> nurseData = new LoginViewModel<UserDetails>();
+    bool isLoading = false;
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public bool View { get; set; }
+    [Parameter]
+    public string Role { get; set; }
+    AcceptOrRejectDischargeSummaryRequestModel acceptOrRejectDischargeSummary = new AcceptOrRejectDischargeSummaryRequestModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"DischargeSummary/GetDischargeSummariesById?id={Id}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<DischargeSummaryRequestModel>>(response));
+        if (result.Status == "Success")
+        {
+            model = result.Data;
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+            NavigateToDischargeSummariesGrid();
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task CompleteDischargeSummary()
+    {
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "DischargeSummary/CompleteDischargeSummary", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            NavigateToDischargeSummariesGrid();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public void NavigateToDischargeSummariesGrid()
+    {
+        if (Role == UserRoles.Nurse.ToString())
+            navigation.NavigateTo("nurse/discharge-summaries");
+        else
+            navigation.NavigateTo("agency/discharge-summaries");
+    }
+
+    public async Task AcceptOrRejectDischargeSummary(int status)
+    {
+        rejectDischargeSummarydialog.Hide();
+        isLoading = true;
+        acceptOrRejectDischargeSummary.Id = model.Id;
+        acceptOrRejectDischargeSummary.Status = status;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "DischargeSummary/AcceptOrRejectDischargeSummary", acceptOrRejectDischargeSummary);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            NavigateToDischargeSummariesGrid();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public void CloseRejectDischargeSummaryDialog()
+    {
+        acceptOrRejectDischargeSummary = new AcceptOrRejectDischargeSummaryRequestModel();
+        rejectDischargeSummarydialog.Hide();
+    }
+
+    public void OpenRejectDischargeSummaryDialog()
+    {
+        acceptOrRejectDischargeSummary.Status = (int)DischargeSummaryStatus.Rejected;
+        rejectDischargeSummarydialog.Show();
+    }
+}
+
+

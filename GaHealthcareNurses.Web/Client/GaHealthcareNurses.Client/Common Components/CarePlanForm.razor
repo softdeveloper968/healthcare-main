@@ -1,0 +1,1125 @@
+﻿@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@inject IJSRuntime jsRunTime
+@using Microsoft.JSInterop
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Calendars
+@using Syncfusion.Blazor.Navigations
+@using GaHealthcareNurses.Entity.Common;
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+
+<EditForm Model="@carePlanRequestModel" OnValidSubmit="UpdateCarePlan">
+    <div class="text-left">
+        <div class="e-wrapper">
+            <DataAnnotationsValidator />
+            <div class="address_box_div">
+                <h5 class="text-right">Date:@DateTime.Now.ToString("MM/dd/yyyy")</h5>
+                <div class="row gap_10">
+                    <div class="col-md-6">
+                        <h3>Patient's Name and Address</h3>
+                        <p>@carePlanRequestModel.PatientName</p>
+                        <p>@carePlanRequestModel.PatientAddress</p>
+                        <p>Age: @carePlanRequestModel.PatientAge</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Provider's Name and Address</h3>
+                        <p>@carePlanRequestModel.AgencyName</p>
+                        <p>@carePlanRequestModel.AgencyAddress</p>
+                        <div class="d_flex">
+                            <label>Sex: @carePlanRequestModel.PatientGender</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <SfTab @bind-SelectedItem="SelectedPage" LoadOn="ContentLoad.Demand" CssClass="modal_SfTabs">
+                <TabItems>
+                    <TabItem>
+                        <ChildContent>
+                            <TabHeader Text="PLAN OF CARE"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+                            <h3 class="maintittle">PLAN OF CARE</h3>
+                            <div class="plancare skilled_nurse_sec ">
+                                <div class="row gap_10">
+                                    <div class="col-md-4">
+                                        <div class="row gap_10">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Patient's HI Claim No</label>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PatientClaimNo" />
+                                                    <ValidationMessage For="@(() => carePlanRequestModel.PatientClaimNo)" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Start of Care Date</label>
+                                                    <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@carePlanRequestModel.CareStartDate"></SfDatePicker>
+                                                    <ValidationMessage For="@(() => carePlanRequestModel.CareStartDate)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Cetification Period</label>
+                                            <div class="gap_10 flex_box">
+                                                <div class="col-md-6">
+                                                    <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@carePlanRequestModel.CertificationFrom"></SfDatePicker>
+                                                    <ValidationMessage For="@(() => carePlanRequestModel.CertificationFrom)" />
+                                                </div>
+                                                <span class="p-0">-</span>
+                                                <div class="col-md-6">
+                                                    <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@carePlanRequestModel.CertificationTo"></SfDatePicker>
+                                                    <ValidationMessage For="@(() => carePlanRequestModel.CertificationTo)" />
+                                                </div>
+                                                @if (carePlanRequestModel.CertificationFrom != null && carePlanRequestModel.CertificationTo != null)
+                                                {
+                                                    @if (DateTime.Compare((DateTime)carePlanRequestModel.CertificationFrom, (DateTime)carePlanRequestModel.CertificationTo) > 0)
+                                                    {
+                                                        <label class="validation-message">End date should be greater than start date</label>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="row gap_10">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Medical Record No</label>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.MedicalRecordNo" />
+                                                    <ValidationMessage For="@(() => carePlanRequestModel.MedicalRecordNo)" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Provider No</label>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ProviderNo" />
+                                                    <ValidationMessage For="@(() => carePlanRequestModel.ProviderNo)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <fieldset class="form-group">
+                                    <legend>Eligibility(Please describe the type of service the patient will receive)</legend>
+                                    <div class="multiline eli_txtarea">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.Eligibility"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Diagnosis</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Always" @bind-Value="@carePlanRequestModel.DiagnosisC"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Medications</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.Medicationsl"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Dme/Supplies</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.DmeSuppliesi"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Safety Measures</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.SafetyMeasures"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <div class="row gap_10">
+                                    <div class="col-md-6">
+                                        <label>Date of verbal SOC</label>
+                                        <div class="form-group">
+                                            <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@carePlanRequestModel.VerbalSOCDate"></SfDatePicker>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Date HHA received Signed POT</label>
+                                            <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@carePlanRequestModel.HHAReceivedDate"></SfDatePicker>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <fieldset class="form-group">
+                                    <legend>Physician's Name and Address</legend>
+                                    <div class="row gap_10">
+                                        <div class="col-md-6">
+                                            <div class="multiline">
+                                                <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.PhysicianName"></SfTextBox>
+                                            </div>
+
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="multiline">
+                                                <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.PhysicianAddress"></SfTextBox>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Nutritional Requirments</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.NutritionalRequirements"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Allergies</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.Allergies"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Functional Limitations</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.FunctionalLimitations"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Activites Permitted</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.ActivitiesPermitted"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>MENTAL STATUS</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.MentalStatus"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>PROGNOSIS</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.Prognosis"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>INTERVENTIONS</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.Interventions"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>GOALS</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.Goals"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>ADVANCE DIRECTIVIES</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.AdvanceDirectives"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>REHAB POTENTIAL</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.RehabPotential"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>DISCHARGE PLANNING</legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.DischargePlanning"></SfTextBox>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>FREQUENCIES </legend>
+                                    <div class="multiline">
+                                        <SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.Frequencies"></SfTextBox>
+                                    </div>
+                                </fieldset>
+
+                                <div class="text-center">
+                                    <button type="button" @onclick="GoToCNAPlanInfoTab" class="create_account btn-theme border ">
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </ContentTemplate>
+                    </TabItem>
+                    <TabItem>
+                        <ChildContent>
+                            <TabHeader Text="CNA PLAN OF CARE"></TabHeader>
+                        </ChildContent>
+                        <ContentTemplate>
+                            <div class="skilled_nurse_sec p-0">
+                                <h2 class="text-center">CNA PLAN OF CARE</h2>
+                                <div class="cnaplancare mt_25">
+                                    <div class="row gap_10">
+                                        <div class="col-md-6">
+                                            <fieldset class="form-group">
+                                                <label>Location Name:</label>
+                                                <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.LocationName" />
+                                                <ValidationMessage For="@(() => carePlanRequestModel.LocationName)" />
+                                            </fieldset>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <fieldset class="form-group">
+                                                <label>Location Number:</label>
+                                                <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.LocationNumber" />
+                                                <ValidationMessage For="@(() => carePlanRequestModel.LocationNumber)" />
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                    <div class="row gap_10">
+                                        <div class="col-lg-6">
+                                            <fieldset class="d_block">
+                                                <legend class="transform_none">Pertinent Information</legend>
+                                                <div class="flex_row_box">
+                                                    <div>
+                                                        <label>Code Status:</label>
+                                                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.CodeStatus" />
+                                                    </div>
+                                                    <div>
+                                                        <label>Allergies:</label>
+                                                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.CnaPlanOfCareAllergies" />
+                                                    </div>
+                                                    <div>
+                                                        <label>Diagnoses:</label>
+                                                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.Diagnosis" />
+                                                    </div>
+                                                    <div>
+                                                        <label>Diet:</label>
+                                                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.Diet" />
+                                                    </div>
+                                                    <div>
+                                                        <SfCheckBox Label="Alert" @bind-Checked="@carePlanRequestModel.IsAlert"></SfCheckBox>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label>Oriented</label>
+                                                    <SfCheckBox Label="Person" @bind-Checked="@carePlanRequestModel.IsOrientedPerson"></SfCheckBox>
+                                                    <SfCheckBox Label="Place" @bind-Checked="@carePlanRequestModel.IsOrientedPlace"></SfCheckBox>
+                                                    <SfCheckBox Label="Time" @bind-Checked="@carePlanRequestModel.IsOrientedTime"></SfCheckBox>
+                                                    <SfCheckBox Label="Forgetful/Confused" @bind-Checked="@carePlanRequestModel.IsOrientedConfused"></SfCheckBox>
+                                                </div>
+                                                <div>
+                                                    <SfCheckBox Label="Dentures:" @bind-Checked="@carePlanRequestModel.IsDentures"></SfCheckBox>
+                                                    <div>
+                                                        <SfCheckBox Label="Upper" @bind-Checked="@carePlanRequestModel.IsDentureUpper"></SfCheckBox>
+                                                        <SfCheckBox Label="Lower" @bind-Checked="@carePlanRequestModel.IsDentureLower"></SfCheckBox>
+                                                        <SfCheckBox Label="Partial" @bind-Checked="@carePlanRequestModel.IsDenturePartial"></SfCheckBox>
+                                                        <SfCheckBox Label="Bed Bound" @bind-Checked="@carePlanRequestModel.IsBedBound"></SfCheckBox>
+                                                        <SfCheckBox Label="Bed rest with BRP" @bind-Checked="@carePlanRequestModel.IsBedRestWithBrp"></SfCheckBox>
+                                                        <SfCheckBox Label="Up as tolerated" @bind-Checked="@carePlanRequestModel.IsUpAsTolerated"></SfCheckBox>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <SfCheckBox Label="Hearing Deficit:" @bind-Checked="@carePlanRequestModel.IsHearingDeficit"></SfCheckBox>
+                                                    <div>
+                                                        <SfCheckBox Label="Upper" @bind-Checked="@carePlanRequestModel.IsHearingDeficitAid"></SfCheckBox>
+                                                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.HearingAid" />
+                                                        <SfCheckBox Label="Speech/communication deficit" @bind-Checked="@carePlanRequestModel.IsHearingDeficitSpeech"></SfCheckBox>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <SfCheckBox Label="Visiual Deficit:" @bind-Checked="@carePlanRequestModel.IsVisualDeficit"></SfCheckBox>
+                                                    <div>
+                                                        <SfCheckBox Label="Glasses" @bind-Checked="@carePlanRequestModel.IsVisualDeficitGlasses"></SfCheckBox>
+                                                        <SfCheckBox Label="Contact" @bind-Checked="@carePlanRequestModel.IsVisualDeficitContacts"></SfCheckBox>
+                                                        <SfCheckBox Label="Other" @bind-Checked="@carePlanRequestModel.IsVisualDeficitOther"></SfCheckBox>
+                                                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <SfCheckBox Label="Assitive device:" @bind-Checked="@carePlanRequestModel.IsAssistiveDevices"></SfCheckBox>
+                                                    <div>
+                                                        <SfCheckBox Label="WC" @bind-Checked="@carePlanRequestModel.IsAssistiveDevicesWC"></SfCheckBox>
+                                                        <SfCheckBox Label="Walker" @bind-Checked="@carePlanRequestModel.IsAssistiveDevicesWalker"></SfCheckBox>
+                                                        <SfCheckBox Label="Cane" @bind-Checked="@carePlanRequestModel.IsAssistiveDevicesCane"></SfCheckBox>
+                                                        <SfCheckBox Label="Crutches" @bind-Checked="@carePlanRequestModel.IsAssistiveDevicesCrutches"></SfCheckBox>
+                                                        <SfCheckBox Label="Brance/Splint" @bind-Checked="@carePlanRequestModel.IsAssistiveDevicesBraceSplint"></SfCheckBox>
+                                                        <SfCheckBox Label="Others" @bind-Checked="@carePlanRequestModel.IsAssistiveDevicesOther"></SfCheckBox>
+                                                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.AssistiveDevicesOther" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <SfCheckBox Label="Others" @bind-Checked="@carePlanRequestModel.IsPertientInformationOther"></SfCheckBox>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="carePlanRequestModel.PertientInformationOther" />
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <fieldset>
+                                                <legend class="transform_none">Observation to Report to Supervisior/Case Manager</legend>
+                                                <table class="table table-striped table-bordered">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><SfCheckBox Label="Temperature" @bind-Checked="@carePlanRequestModel.IsObserveTemp"></SfCheckBox></td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Over:" @bind-Checked="@carePlanRequestModel.IsObserveTempOver"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveTempOver" />
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Under:" @bind-Checked="@carePlanRequestModel.IsObserveTempUnder"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveTempUnder" />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><SfCheckBox Label="Pulse" @bind-Checked="@carePlanRequestModel.IsObservePulse"></SfCheckBox></td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Over:" @bind-Checked="@carePlanRequestModel.IsObservePulseOver"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObservePulseOver" />
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Under:" @bind-Checked="@carePlanRequestModel.IsObservePulseUnder"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObservePulseUnder" />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><SfCheckBox Label="Respirations" @bind-Checked="@carePlanRequestModel.IsObserveRespiration"></SfCheckBox></td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Over:" @bind-Checked="@carePlanRequestModel.IsObserveRespirationOver"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveRespirationOver" />
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Under:" @bind-Checked="@carePlanRequestModel.IsObserveRespirationUnder"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveRespirationUnder" />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><SfCheckBox Label="Blood Pressure" @bind-Checked="@carePlanRequestModel.IsObserveBP"></SfCheckBox></td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Over:" @bind-Checked="@carePlanRequestModel.IsObserveBPOver"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveBPOver" />
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Under:" @bind-Checked="@carePlanRequestModel.IsObserveBPUnder"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveBPUnder" />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><SfCheckBox Label="Intake amount" @bind-Checked="@carePlanRequestModel.IsObserveIntake"></SfCheckBox></td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Over:" @bind-Checked="@carePlanRequestModel.IsObserveIntakeOver"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveIntakeOver" />
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Under:" @bind-Checked="@carePlanRequestModel.IsObserveIntakeUnder"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveIntakeUnder" />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><SfCheckBox Label="Output amount" @bind-Checked="@carePlanRequestModel.IsObserveOutputAmount"></SfCheckBox></td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Over:" @bind-Checked="@carePlanRequestModel.IsObserveOutputAmountOver"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveOutputAmountOver" />
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="table_report">
+                                                                    <SfCheckBox Label="Under:" @bind-Checked="@carePlanRequestModel.IsObserveOutputAmountUnder"></SfCheckBox>
+                                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveOutputAmountUnder" />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <div>
+                                                    <div>
+                                                        <SfCheckBox Label="No BM in days" @bind-Checked="@carePlanRequestModel.IsObserveNoBMInDays"></SfCheckBox>
+                                                    </div>
+                                                    <div>
+                                                        <SfCheckBox Label="Pain above:" @bind-Checked="@carePlanRequestModel.IsObservePainAbove"></SfCheckBox>
+                                                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObservePainAbove" />
+                                                    </div>
+                                                    <SfCheckBox Label="Change in skin:" @bind-Checked="@carePlanRequestModel.IsObserveChangesInSkin"></SfCheckBox>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveChangesInSkin" />
+                                                    <SfCheckBox Label="Reddened area" @bind-Checked="@carePlanRequestModel.IsObserveReddenedArea"></SfCheckBox>
+                                                    <SfCheckBox Label="Others:" @bind-Checked="@carePlanRequestModel.IsObserveReddenedOther"></SfCheckBox>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveReddenedOther" />
+                                                </div>
+                                                <div>
+                                                    <SfCheckBox Label="Weight" @bind-Checked="@carePlanRequestModel.IsObserveWeight"></SfCheckBox>
+                                                    <SfCheckBox Label="Gain" @bind-Checked="@carePlanRequestModel.IsObserveWeightGain"></SfCheckBox>
+                                                    <SfCheckBox Label="loss of lb over(time period)" @bind-Checked="@carePlanRequestModel.IsObserveWeightLoss"></SfCheckBox>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveWeightLoss" />
+                                                </div>
+                                                <div>
+                                                    <SfCheckBox Label="Other:" @bind-Checked="@carePlanRequestModel.IsObserveOther1"></SfCheckBox>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveOther1" />
+                                                    <SfCheckBox Label="Other:" @bind-Checked="@carePlanRequestModel.IsObserveOther2"></SfCheckBox>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ObserveOther2" />
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                    <div class="row gap_10">
+                                        <div class="col-lg-6">
+                                            <fieldset>
+                                                <legend>Precautions/Safety</legend>
+                                                <div class="row">
+                                                    <div class="col-sm-6">
+                                                        <ul class="e-wrapper">
+                                                            <li> <SfCheckBox Label="Fall precautions" @bind-Checked="@carePlanRequestModel.IsSafetyFallPrecautions"></SfCheckBox> </li>
+                                                            <li><SfCheckBox Label="Side rails up" @bind-Checked="@carePlanRequestModel.IsSafetySideRailsUp"></SfCheckBox></li>
+                                                            <li><SfCheckBox Label="Hip precautions" @bind-Checked="@carePlanRequestModel.IsSafetyHip"></SfCheckBox></li>
+                                                            <li><SfCheckBox Label="Bleeding precautions" @bind-Checked="@carePlanRequestModel.IsSafetyBleeding"></SfCheckBox></li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="col-sm-6">
+                                                        <ul class="e-wrapper">
+                                                            <li> <SfCheckBox Label="Ambulat only with assistance" @bind-Checked="@carePlanRequestModel.IsSafetyAmbulateOnly"></SfCheckBox></li>
+                                                            <li> <SfCheckBox Label="Swallowing precautions" @bind-Checked="@carePlanRequestModel.IsSafetySwallowing"></SfCheckBox></li>
+                                                            <li><SfCheckBox Label="Siezure precautions" @bind-Checked="@carePlanRequestModel.IsSafetySeizure"></SfCheckBox></li>
+                                                            <li>  <SfCheckBox Label="Prone to fractures" @bind-Checked="@carePlanRequestModel.IsSafetyProneToFractures"></SfCheckBox></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <SfCheckBox Label="Other:" @bind-Checked="@carePlanRequestModel.IsSafetyOther1"></SfCheckBox>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.SafetyOther1" />
+                                                    <SfCheckBox Label="Other:" @bind-Checked="@carePlanRequestModel.IsSafetyOther2"></SfCheckBox>
+                                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.SafetyOther2" />
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <fieldset>
+                                                <legend>Special Instructions</legend>
+                                                <div class="e-wrapper">
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <SfCheckBox Label="Amputee/Prosthesis(specify):" @bind-Checked="@carePlanRequestModel.IsInstructionsAmputee"></SfCheckBox>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.InstructionsAmputee" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <SfCheckBox Label="Special equipment(specify):" @bind-Checked="@carePlanRequestModel.IsInstructionsSpecialEquip"></SfCheckBox>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.InstructionsSpecialEquip" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <SfCheckBox Label="Oxygen use(specify):" @bind-Checked="@carePlanRequestModel.IsInstructionsOxygen"></SfCheckBox>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.InstructionsOxygen" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <SfCheckBox Label="Weight bearing restrictions(specify):" @bind-Checked="@carePlanRequestModel.IsInstructionsWeight"></SfCheckBox>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.InstructionsWeight" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <SfCheckBox Label="Other:" @bind-Checked="@carePlanRequestModel.IsInstructionsOther"></SfCheckBox>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.InstructionsOther" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                    <div class="head_ing">
+                                        <h5>Tasks(select desired tasks, indicate frequency and assistance required if applicable)</h5>
+                                    </div>
+                                    <div class="row gap_10">
+                                        <div class="col-lg-6">
+                                            <table class="table table-striped table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Task</th>
+                                                        <th>Assigned</th>
+                                                        <th>Frequency</th>
+                                                        <th>Notes</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="4"><h5 class="text-left">Vital Signs/Measures</h5></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Temperature</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsTemp"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsTempFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsTempNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Pulse</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsPulse"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsPulseFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsPulseNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Respirations</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsRespirations"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsRespirationsFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsRespirationsNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Blood Pressure</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsBP"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsBPFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsBPNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Pain Rating</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsPainRating"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsPainRatingFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsPainRatingNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Weight</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsWeight"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsWeightFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsWeightNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Measure intake amounts</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsIntake"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsIntakeFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsIntakeNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Measure output amounts</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsOutput"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsOutputFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsOutputNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            Other:
+                                                            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsOther" />
+                                                        </td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsVitalSignsOther"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsOtherFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.VitalSignsOtherNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4"><h5 class="text-left">Personal Care</h5></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            Bath:
+                                                            <SfCheckBox Label="Chair" @bind-Checked="@carePlanRequestModel.IsPersonalCareBathChair"></SfCheckBox>
+                                                            <SfCheckBox Label="Tub" @bind-Checked="@carePlanRequestModel.IsPersonalCareBathTub"></SfCheckBox>
+                                                            <SfCheckBox Label="Bed:" @bind-Checked="@carePlanRequestModel.IsPersonalCareBathBed" @onchange="OnPersonalCareBathBedChange"></SfCheckBox>
+                                                            @if (carePlanRequestModel.IsPersonalCareBathBed)
+                                                            {
+                                                                <div>
+                                                                    <SfRadioButton Label="Partial" Value="Partial" LabelPosition="LabelPosition.After" @bind-Checked="@carePlanRequestModel.IsPersonalCareBathPartial"></SfRadioButton><br />
+                                                                    <SfRadioButton Label="Complete" Value="Complete" LabelPosition="LabelPosition.After" @bind-Checked="@carePlanRequestModel.IsPersonalCareBathPartial"></SfRadioButton>
+                                                                </div>
+                                                            }
+                                                        </td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCare"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareBathFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareBathNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Shower:<SfCheckBox Label="Use Shower Chair" @bind-Checked="@carePlanRequestModel.IsPersonalCareShowerUseChair"></SfCheckBox></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareShower"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareShowerFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareShowerNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Oral Care</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareOral"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareOralFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareOralNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Skin Care:<SfCheckBox Label="Moisturize" @bind-Checked="@carePlanRequestModel.IsPersonalCareSkinCareMoisturize"></SfCheckBox></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareSkinCare"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareSkinCareFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareSkinCareNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Check pressure area</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareCheckPressure"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareCheckPressureFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareCheckPressureNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Hair Care</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareHairCare"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareHairCareFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareHairCareNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Shampoo</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareShampoo"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareShampooFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareShampooNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Peri Care</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCarePeriCare"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCarePeriCareFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCarePeriCareNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Foot Care</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareFootCare"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareFootCareFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareFootCareNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Clean/file nails</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareCleanNails"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareCleanNailsFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareCleanNailsNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Assist with dressing</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareDressing"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareDressingFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareDressingNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Apply elastic stockings</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareStockings"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareStockingsFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareStockingsNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Shave with electric razor</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareShave"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareShaveFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareShaveNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Other:<SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareOther1" /></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareOther1"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareOther1Frequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareOther1Notes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Other:<SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareOther2" /></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsPersonalCareOther2"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareOther2Frequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.PersonalCareOther2Notes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4"><h5 class="text-left">Activity</h5></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Assit with ammbulation</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsActivityAmbulation"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityAmbulationFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityAmbulationNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            Transfer assist:
+                                                            <SfCheckBox Label="Chair" @bind-Checked="@carePlanRequestModel.IsActivityTransferAssistChair"></SfCheckBox>
+                                                            <SfCheckBox Label="Commode" @bind-Checked="@carePlanRequestModel.IsActivityTransferAssistCommode"></SfCheckBox>
+                                                            <SfCheckBox Label="Bed" @bind-Checked="@carePlanRequestModel.IsActivityTransferAssistBed"></SfCheckBox>
+                                                            <SfCheckBox Label="Shower" @bind-Checked="@carePlanRequestModel.IsActivityTransferAssistShower"></SfCheckBox>
+                                                            <SfCheckBox Label="Tub" @bind-Checked="@carePlanRequestModel.IsActivityTransferAssistTub"></SfCheckBox>
+                                                            <SfCheckBox Label="Use Hoyer lift" @bind-Checked="@carePlanRequestModel.IsActivityTransferAssistHoyerLift"></SfCheckBox>
+                                                        </td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsActivityTransferAssist"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityTransferAssistFrequency" /></td>
+                                                        <td><SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.ActivityTransferAssistNotes"></SfTextBox></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            Exercise per:
+                                                            <SfCheckBox Label="PT" @bind-Checked="@carePlanRequestModel.IsActivityExcercisePT"></SfCheckBox>
+                                                            <SfCheckBox Label="OT" @bind-Checked="@carePlanRequestModel.IsActivityExcerciseOT"></SfCheckBox>
+                                                            <SfCheckBox Label="SPL:" @bind-Checked="@carePlanRequestModel.IsActivityExcerciseSLP"></SfCheckBox>
+                                                        </td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsActivityExcercise"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityExcerciseFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityExcerciseNotes" /></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <table class="table table-striped table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Task</th>
+                                                        <th>Assigned</th>
+                                                        <th>Frequency</th>
+                                                        <th>Notes</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="4"><h5 class="text-left">Elimination</h5></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Date of last BM</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEliminationLastBM"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationLastBMFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationLastBMNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Assist with toileting</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEliminationAssistWithToilet"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationAssistWithToiletFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationAssistWithToiletNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Bedpan/Urinal</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEliminationBedPan"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationBedPanFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationBedPanNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            Catheter Care:
+                                                            <div>
+                                                                <SfCheckBox Label="External" @bind-Checked="@carePlanRequestModel.IsEliminationCCareExternal"></SfCheckBox>
+                                                                <SfCheckBox Label="Urethral" @bind-Checked="@carePlanRequestModel.IsEliminationCCareUrethral"></SfCheckBox>
+                                                                <SfCheckBox Label="Suprapublic:" @bind-Checked="@carePlanRequestModel.IsEliminationCCareSuprapublic"></SfCheckBox>
+                                                            </div>
+                                                        </td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEliminationCCare"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationCCareFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationCCareNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Empty urine bag</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEliminationUrineBag"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationUrineBagFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationUrineBagNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Ostomy care</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEliminationOstomy"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationOstomyFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationOstomyNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Other:<SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationOther1" /></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEliminationOther1"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationOther1Frequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationOther1Notes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Other:<SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationOther2" /></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEliminationOther2"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationOther2Frequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EliminationOther2Notes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4"><h5 class="text-left">Nutrition Diet</h5></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Prepare meals</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsNutritionPrepMeals"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionPrepMealsFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionPrepMealsNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Prepare snacks</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsNutritionPrepSnacks"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionPrepSnacksFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionPrepSnacksNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Assist with feeding</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsNutritionFeeding"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionFeedingFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionFeedingNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            Fluids:
+                                                            <div>
+                                                                <SfCheckBox Label="Limit" @bind-Checked="@carePlanRequestModel.IsNutritionFluidsLimit"></SfCheckBox>
+                                                                <SfCheckBox Label="Encourage" @bind-Checked="@carePlanRequestModel.IsNutritionFluidsEncourage"></SfCheckBox>
+                                                            </div>
+                                                        </td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsNutritionFluids"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionFluidsFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionFluidsNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Other:<SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionOther" /></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsNutritionOther"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionOtherFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionOtherNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4"><h5 class="text-left">Enviromental</h5></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            Tidy/Clean:
+                                                            <div>
+                                                                <SfCheckBox Label="Bathroom" @bind-Checked="@carePlanRequestModel.IsEnviromentalCleanBathroom"></SfCheckBox>
+                                                                <SfCheckBox Label="Bedroom" @bind-Checked="@carePlanRequestModel.IsEnviromentalCleanBedroom"></SfCheckBox>
+                                                                <SfCheckBox Label="Living Room:" @bind-Checked="@carePlanRequestModel.IsEnviromentalCleanLiving"></SfCheckBox>
+                                                                <SfCheckBox Label="Kitchen:" @bind-Checked="@carePlanRequestModel.IsEnviromentalCleanKitchen"></SfCheckBox>
+                                                            </div>
+                                                        </td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEnviromentalClean"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnviromentalCleanFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnviromentalCleanNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Laundry</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEnviromentalLaundry"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnviromentalLaundryFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnviromentalLaundryNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Change Bed linen</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEnvironmentalBedLinen"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnvironmentalBedLinenFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnvironmentalBedLinenNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Equipment care</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEnvironmentalEquipCare"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnvironmentalEquipCareFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnvironmentalEquipCareNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Other:<SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnvironmentalOther" /></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsEnvironmentalOther"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnvironmentalOtherFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.EnvironmentalOtherNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="4"><h5 class="text-left">Medications</h5></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Assist with self administration</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsMedicationSelfAssist"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.MedicationSelfAssistFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.MedicationSelfAssistNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Medications reminder</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsMedicationReminder"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.MedicationReminderFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.MedicationReminderNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Reposition everyday</td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsActivityReposition"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityRepositionFrequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityRepositionNotes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            ROM:
+                                                            <div>
+                                                                <SfCheckBox Label="Active" @bind-Checked="@carePlanRequestModel.IsActivityROMActive"></SfCheckBox>
+                                                                <SfCheckBox Label="Passive" @bind-Checked="@carePlanRequestModel.IsActivityROMPassive"></SfCheckBox>
+                                                            </div>
+                                                            Arm:
+                                                            <div>
+                                                                <SfCheckBox Label="Right" @bind-Checked="@carePlanRequestModel.IsActivityArmRight"></SfCheckBox>
+                                                                <SfCheckBox Label="Left" @bind-Checked="@carePlanRequestModel.IsActivityArmLeft"></SfCheckBox>
+                                                            </div>
+                                                            Leg:
+                                                            <div>
+                                                                <SfCheckBox Label="Right" @bind-Checked="@carePlanRequestModel.IsActivityLegRight"></SfCheckBox>
+                                                                <SfCheckBox Label="Left" @bind-Checked="@carePlanRequestModel.IsActivityLegLeft"></SfCheckBox>
+                                                            </div>
+                                                        </td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsActivityROM"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.NutritionFluidsFrequency" /></td>
+                                                        <td><SfTextBox Multiline=true FloatLabelType="@FloatLabelType.Auto" @bind-Value="@carePlanRequestModel.NutritionFluidsNotes"></SfTextBox></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Other:<SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityOther1" /></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsActivityOther1"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityOther1Frequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityOther1Notes" /></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Other:<SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityOther2" /></td>
+                                                        <td><SfCheckBox @bind-Checked="@carePlanRequestModel.IsActivityOther2"></SfCheckBox></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityOther2Frequency" /></td>
+                                                        <td><SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@carePlanRequestModel.ActivityOther2Notes" /></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="create_account">
+                                    <div class="ds_btns">
+                                        <a @onclick="GoToPlanInfoTab" class="create_account btn-theme border prev_button">
+                                            Back
+                                        </a>
+                                        <button type="submit" class="create_account btn-theme border ">
+                                            Save
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </ContentTemplate>
+                    </TabItem>
+                </TabItems>
+            </SfTab>
+        </div>
+    </div>
+</EditForm>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    int SelectedPage { get; set; } = 0;
+    CarePlanRequestModel carePlanRequestModel = new CarePlanRequestModel();
+    bool isLoading = false;
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public int JobId  { get; set; }
+    [Parameter]
+    public bool View { get; set; }
+    AdultAssessmentRequestModel intitalAssessmentRequestModel = new AdultAssessmentRequestModel();
+    DiagnosisViewModel diagnosisRequestViewModel = new DiagnosisViewModel();
+    [Parameter]
+    public string Role { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"CarePlan/GetCarePlanById?id={Id}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<CarePlanRequestModel>>(response));
+        if (result.Status == "Success")
+        {
+            carePlanRequestModel = result.Data;
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+            NavigateToCarePlansGrid();
+        }
+
+        var responseMessages = await Http.GetAsync(wsp.Path + $"AdultAssessment/GetAssessmentByJobId?id={carePlanRequestModel.JobId}");
+        var responses = responseMessages.Content.ReadAsStringAsync().Result;
+        var results = (JsonConvert.DeserializeObject<Response<AdultAssessmentRequestModel>>(responses));
+        if (result.Status == "Success")
+        {
+            intitalAssessmentRequestModel = results.Data;
+            carePlanRequestModel.SafetyMeasures = intitalAssessmentRequestModel.SafetyMeasuresRecommended;
+            carePlanRequestModel.Eligibility = intitalAssessmentRequestModel.FrequencyEligibility;
+            carePlanRequestModel.Prognosis = intitalAssessmentRequestModel.FrequencyPrognosis;
+            carePlanRequestModel.DmeSuppliesi = intitalAssessmentRequestModel.FrequencyDMESupplies;     
+            carePlanRequestModel.Diet = intitalAssessmentRequestModel.NutritionalRequirements;
+            carePlanRequestModel.FunctionalLimitations = intitalAssessmentRequestModel.FunctionalLimitations;
+            carePlanRequestModel.ActivitiesPermitted = intitalAssessmentRequestModel.ActivitiesPermitted;
+            carePlanRequestModel.MentalStatus = intitalAssessmentRequestModel.MaritalStatus;
+            carePlanRequestModel.Prognosis = intitalAssessmentRequestModel.FrequencyPrognosis;
+            carePlanRequestModel.Interventions = intitalAssessmentRequestModel.InterventionsEducation;
+            carePlanRequestModel.Goals = intitalAssessmentRequestModel.FrequencyGoals;
+            carePlanRequestModel.AdvanceDirectives = intitalAssessmentRequestModel.IsAwareAdvanceDirective;
+            carePlanRequestModel.DischargePlanning = intitalAssessmentRequestModel.DischargePlanning;
+            carePlanRequestModel.Frequencies = intitalAssessmentRequestModel.FrequencySN;
+            carePlanRequestModel.PhysicianName = intitalAssessmentRequestModel.ReferringPhysician;
+            carePlanRequestModel.PhysicianAddress = intitalAssessmentRequestModel.PhysicianAddress;
+            carePlanRequestModel.Eligibility = intitalAssessmentRequestModel.FrequencyEligibility;
+            List<string> diagnosis = new List<string>();
+            foreach (var item in intitalAssessmentRequestModel.Diagnosis)
+            {
+                diagnosis.Add(item.DxDescription);
+                diagnosis.Add(item.DxDate.ToString());
+            }
+            carePlanRequestModel.DiagnosisC = String.Join(Environment.NewLine, diagnosis);
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+    }
+
+    public async Task UpdateCarePlan()
+    {
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "CarePlan/UpdateCarePlan", carePlanRequestModel);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            NavigateToCarePlansGrid();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public void NavigateToCarePlansGrid()
+    {
+        if (Role == UserRoles.Nurse.ToString())
+            navigation.NavigateTo("nurse/care-plans");
+        else
+            navigation.NavigateTo("agency/care-plans");
+    }
+
+    public void GoToCNAPlanInfoTab()
+    {
+        SelectedPage = 1;
+        StateHasChanged();
+    }
+
+    public void GoToPlanInfoTab()
+    {
+        SelectedPage = 0;
+        StateHasChanged();
+    }
+
+    public void OnPersonalCareBathBedChange()
+    {
+        if (!carePlanRequestModel.IsPersonalCareBathBed)
+        {
+            carePlanRequestModel.IsPersonalCareBathPartial = null;
+        }
+        StateHasChanged();
+    }
+}
+
+

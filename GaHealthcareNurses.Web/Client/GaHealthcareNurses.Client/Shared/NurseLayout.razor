@@ -1,0 +1,47 @@
+﻿@inherits LayoutComponentBase
+@using Blazored.Toast.Configuration
+
+<NurseHeader />
+<div class="layout_full @(isOpen ? "hamburger_layout" : "")">
+    <div class="sidebar">
+        <NurseNavMenu OnMenuItemSelected="SelectedItemUpdate" />
+    </div>
+
+    <div class="main">
+        <div class="dashboard_header">
+            <button @onclick="ToggleNavMenu" class="navbar-toggler">
+                <i class="fa fa-bars"></i>
+            </button>
+            <h2>@menuTitle</h2>
+        </div>
+        <div class="content px-4">
+            @Body
+        </div>
+    </div>
+</div>
+
+<FormFooter />
+
+<BlazoredToasts Position="ToastPosition.BottomRight"
+                Timeout="10"
+                IconType="IconType.FontAwesome"
+                SuccessClass="success-toast-override"
+                SuccessIcon="fa fa-thumbs-up"
+                ErrorIcon="fa fa-bug" />
+
+@code{
+    bool isOpen = false;
+    string menuTitle = "Emails";
+
+    private async Task ToggleNavMenu()
+    {
+        isOpen = !isOpen;
+        StateHasChanged();
+    }
+
+    public void SelectedItemUpdate(string title)
+    {
+        menuTitle = title;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,581 @@
+﻿@page "/nurse/settings"
+@using Syncfusion.Blazor.Navigations
+@using GaHealthcareNurses.Entity.ViewModels
+@using GaHealthcareNurses.Entity.Models
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Calendars
+@using Syncfusion.Blazor.Spinner
+@layout GaHealthcareNurses.Client.Shared.NurseLayout
+@inject HttpClient Http
+@inject NavigationManager navigation
+@inject IToastService toastService
+@using Newtonsoft.Json
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<div>
+    <SfTab>
+        <TabItems>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="Personal Info"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <EditForm Model="@nurseUpdateViewModel" class="formSec" OnValidSubmit="UpdateNurseInformation">
+                        <DataAnnotationsValidator />
+                        <div class="skilled_nurse_sec form_input">
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>First Name</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.FirstName" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Middle Name</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.MiddleInitial" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.MiddleInitial)" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Last Name</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.LastName" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.LastName)" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label class="d_block">Date of Birth</label>
+                                    <SfDatePicker CssClass="max_w_100" Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@nurseUpdateViewModel.DateOfBirth"></SfDatePicker>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.DateOfBirth)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Social Security Number</label>
+                                    <SfMaskedTextBox FloatLabelType="@FloatLabelType.Auto" @bind-Value="@nurseUpdateViewModel.SocialSecurityNo" Mask="000-00-0000" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Email Address</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto"  Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.EmailAddress" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.EmailAddress)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Phone Number</label>
+                                    <SfMaskedTextBox FloatLabelType="@FloatLabelType.Auto" @bind-Value="nurseUpdateViewModel.TelephoneNo" Mask="000-000-0000" class="form-control" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.TelephoneNo)" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Address</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.AddressLine1" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.AddressLine1)" />
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="row gap_10">
+                                        <div class="col-md-4 mb_10">
+                                            <label>State</label>
+                                            <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" @bind-Value="nurseUpdateViewModel.StateId" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                                <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                                <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                            </SfDropDownList>
+                                            <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                        </div>
+                                        <div class="col-md-4 mb_10">
+                                            <label>City</label>
+                                            <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" @bind-Value="nurseUpdateViewModel.CityId" TValue="int" TItem="City" AllowFiltering="true" DataSource="@cityList">
+                                                <DropDownListEvents TItem="City" TValue="int" ValueChange="OnCityChange"></DropDownListEvents>
+                                                <DropDownListFieldSettings Text="NameAndZipcode" Value="CityId"></DropDownListFieldSettings>
+                                            </SfDropDownList>
+                                            <ValidationMessage For="@(() => nurseUpdateViewModel.CityId)" />
+                                        </div>
+                                        <div class="col-md-4 mb_10">
+                                            <label>Zip Code</label>
+                                            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text"  @bind-Value="@nurseUpdateViewModel.ZipCode" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Agencies Registered With</label>
+                                    <SfMultiSelect FloatLabelType="@FloatLabelType.Auto" @bind-Value="nurseUpdateViewModel.Employers" TValue="List<string>" TItem="Employer" AllowFiltering="true" DataSource="@agencyList">
+                                        <MultiSelectFieldSettings Text="Name" Value="Id"></MultiSelectFieldSettings>
+                                    </SfMultiSelect>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.Employers)" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ds_btns">
+                            <button type="submit" name="submit" class="create_account btn-theme border ">
+                                Update Account <i class="fa fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </EditForm>
+                </ContentTemplate>
+            </TabItem>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="Account Details"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <EditForm Model="@nurseUpdateViewModel" class="formSec" OnValidSubmit="UpdateNurseInformation">
+                        <DataAnnotationsValidator />
+                        <div class="skilled_nurse_sec form_input">
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Status</label>
+                                     <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-8 mb_10">
+                                    <label>Address</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                      <label> </label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Lead Created Date </label>
+                                    <input class="form-control" type="date">
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                </div>
+                                
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Initial Assessment Date</label>
+                                     <input class="form-control" type="date">
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Conversion Date</label>
+                                    <input class="form-control" type="date">
+                                </div>
+                                 <div class="col-md-4 mb_10">
+                                    <label>Start Date</label>
+                                    <input class="form-control" type="date">
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Effective End Date</label>
+                                    <input class="form-control" type="date">
+                                </div>
+                            </div>
+
+                        </div>
+                        <hr />
+                          <div class="skilled_nurse_sec form_input">
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Administrator</label>
+                                     <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                 <div class="col-md-4 mb_10">
+                                    <label>Region Code</label>
+                                     <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                 <div class="col-md-4 mb_10">
+                                    <label>Referred By</label>
+                                     <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Medicaid Number </label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Preferred Caregiver </label>
+                                    <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                </div>
+                                  <div class="col-md-4 mb_10">
+                                    <label>Admin Alerts</label>
+                                    <br />
+                                    <label class="w-100 mb-2"> <input type="checkbox"> Disable admin alert for clock-in</label>
+                                    <label class="w-100"> <input type="checkbox"> Disable admin alert for clock-in</label>
+                                </div>
+                                
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Invoicing ID</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto"  Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.EmailAddress)" />
+                                </div>
+                            </div>
+                        </div>
+                    </EditForm>
+                </ContentTemplate>
+            </TabItem>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="Mailing Info"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <EditForm Model="@nurseUpdateViewModel" class="formSec" OnValidSubmit="UpdateNurseInformation">
+                        <DataAnnotationsValidator />
+                        <div class="skilled_nurse_sec form_input">
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Name</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-8 mb_10">
+                                    <label>Address</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>City</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Residential State</label>
+                                    <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Zip Code</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto"  Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.EmailAddress)" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Effective End Date</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto"  Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.EmailAddress)" />
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </EditForm>
+
+                </ContentTemplate>
+            </TabItem>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="Characteristics"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <EditForm Model="@nurseUpdateViewModel" class="formSec" OnValidSubmit="UpdateNurseInformation">
+                        <DataAnnotationsValidator />
+                        <div class="skilled_nurse_sec form_input">
+                            <div class="row gap_10">
+                                <div class="col-md-6 mb_10">
+                                    <label>Weight (^lbs)</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.FirstName" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-2 mb_10">
+                                    <label>Height (^lbs)</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.MiddleInitial" />
+                                 </div>
+                                   <div class="col-md-2 mb_10">
+                                    <label>ft.</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.MiddleInitial"><label>in.</label></SfTextBox>
+                                    
+                                </div>
+
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label class="d_block">Language</label>
+                                    <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" @bind-Value="nurseUpdateViewModel.StateId" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Occupation</label>
+                                    <SfMaskedTextBox FloatLabelType="@FloatLabelType.Auto" @bind-Value="@nurseUpdateViewModel.SocialSecurityNo"  class="form-control" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Job Title</label>
+                                    <SfMaskedTextBox FloatLabelType="@FloatLabelType.Auto" @bind-Value="@nurseUpdateViewModel.SocialSecurityNo" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Hobbies</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto"  Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.EmailAddress" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Triage Level</label>
+                                    <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" @bind-Value="nurseUpdateViewModel.StateId" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Job Title</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto"  Type="InputType.Text" @bind-Value="@nurseUpdateViewModel.EmailAddress" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>DNR</label>
+                                    <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" @bind-Value="nurseUpdateViewModel.StateId" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Allergies</label>
+                                    <label class="mr-5"><input type="radio"> Female</label>
+                                    <label><input type="radio"> male</label>
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Will</label>
+                                    <label class="mr-5"><input type="radio"> Yes</label>
+                                    <label><input type="radio"> No</label>
+                                </div>
+
+                            </div>
+                            
+                        </div>
+                    </EditForm>
+                </ContentTemplate>
+            </TabItem>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="Contact Info"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <EditForm Model="@nurseUpdateViewModel" class="formSec" OnValidSubmit="UpdateNurseInformation">
+                        <DataAnnotationsValidator />
+                        <div class="skilled_nurse_sec form_input">
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Phone (Home)</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Phone (Mobile)</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Phone (Other)</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Mobile Option Out (what NOT to receive)</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text"><a style="color:#2391C6;font-size:14px;padding:15px 8px;border-radius:3px;font-weight:500;position:absolute;top:15px;right:15px;" href="#">Change</a></SfTextBox>
+
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Telephony Phone</label>
+                                    <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                </div>
+
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Effective End Date</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto"  Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.EmailAddress)" />
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <hr />
+                        <div class="skilled_nurse_sec form_input">
+                            <div class="row gap_10">
+
+                                <div class="col-md-10 mb_10">
+                                    <label>Email Address</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" />
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label>Email Option Out (what not to receive)</label>
+                                    <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text"><a style="color:#2391C6;font-size:14px;padding:15px 8px;border-radius:3px;font-weight:500;position:absolute;top:15px;right:15px;" href="#">Change</a></SfTextBox>
+
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.FirstName)" />
+                                </div>
+                                <div class="col-md-4 mb_10">
+                                    <label>Send Now</label>
+                                    <br />
+                                    <label>Resend Daily / Weekly Messages<a style="color:#2391C6;font-size:14px;padding:15px 8px;border-radius:3px;font-weight:500;position:absolute;top:15px;right:15px;" href="#">Week Calender</a></label>
+                                </div>
+
+                            </div>
+                            <div class="row gap_10">
+                                <div class="col-md-4 mb_10">
+                                    <label style="color:#2391C6;">
+                                        Directions to Residencee
+                                    </label>
+                                    <br>
+                                    <label>from</label>
+                                    <SfDropDownList class="form-control" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="State" AllowFiltering="true" DataSource="@stateList">
+                                        <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                                        <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => nurseUpdateViewModel.StateId)" />
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </EditForm>
+
+                </ContentTemplate>
+            </TabItem>
+        </TabItems>
+    </SfTab>
+</div>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    NurseUpdateViewModel nurseUpdateViewModel = new NurseUpdateViewModel();
+    List<Employer> agencyList = new List<Employer>();
+    List<State> stateList = new List<State>();
+    List<City> cityList = new List<City>();
+    LoginViewModel<UserDetails> nurseData = new LoginViewModel<UserDetails>();
+    bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Employer/GetAgenciesList");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        agencyList = (JsonConvert.DeserializeObject<Response<List<Employer>>>(response)).Data;
+
+        var stateResponseMessage = await Http.GetAsync(wsp.Path + "State");
+        var stateResponse = stateResponseMessage.Content.ReadAsStringAsync().Result;
+        stateList = (JsonConvert.DeserializeObject<Response<List<State>>>(stateResponse)).Data;
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            nurseData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("nurseData");
+            if (nurseData != null)
+            {
+                isLoading = true;
+                var nurseResponseMessage = await Http.GetAsync(wsp.Path + $"Nurses/GetNursePersonalInformation?nurseId={nurseData.UserDetails.UserId}");
+                var nurseResponse = nurseResponseMessage.Content.ReadAsStringAsync().Result;
+                nurseUpdateViewModel = (JsonConvert.DeserializeObject<Response<NurseUpdateViewModel>>(nurseResponse)).Data;
+
+                var httpResponseMessage = await Http.GetAsync(wsp.Path + $"City/GetByStateId?stateId={nurseUpdateViewModel.StateId}");
+                var responseCity = httpResponseMessage.Content.ReadAsStringAsync().Result;
+                cityList = (JsonConvert.DeserializeObject<Response<List<City>>>(responseCity)).Data;
+                isLoading = false;
+                StateHasChanged();
+            }
+            else
+            {
+                navigation.NavigateTo("nurse/sign-in");
+
+            }
+        }
+    }
+
+    private async Task LoadCities(int stateId)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"City/GetByStateId?stateId={stateId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        cityList = (JsonConvert.DeserializeObject<Response<List<City>>>(response)).Data;
+    }
+
+    public async Task OnStateChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, State> args)
+    {
+        nurseUpdateViewModel.StateId = args.ItemData.StateId;
+
+        if (args.ItemData.StateId == 0)
+        {
+            cityList.Clear();
+        }
+        else
+        {
+            await LoadCities(args.ItemData.StateId);
+        }
+    }
+
+    public async Task OnCityChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, City> args)
+    {
+        if (args.ItemData != null)
+        {
+            nurseUpdateViewModel.CityId = args.ItemData.CityId;
+            var responseMessage = await Http.GetAsync(wsp.Path + $"City/GetById?id={nurseUpdateViewModel.CityId}");
+            var response = responseMessage.Content.ReadAsStringAsync().Result;
+            City city = (JsonConvert.DeserializeObject<Response<City>>(response)).Data;
+            nurseUpdateViewModel.ZipCode = city.ZipCode.ToString();
+        }
+    }
+
+    public async Task UpdateNurseInformation()
+    {
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "Nurses/UpdateNursePersonalInformation", nurseUpdateViewModel);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,1247 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .fieldset_box {
+            display: block;
+            border: 1px solid #ccc;
+            border-image: initial;
+            margin: 0 0 18px;
+            position: relative;
+            padding: 13px 10px 6px;
+        }
+
+        .legend_txt {
+            display: block;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 500;
+            background: #fff;
+            top: -8px;
+            position: absolute;
+            left: 10px;
+        }
+
+        .skilled_sec {
+            padding: 20px 5px 0;
+            max-width: 770px;
+            margin: 0 auto;
+        }
+
+            .skilled_sec h2 {
+                margin: 0 0 8px;
+                text-align: center;
+                font-size: 22px;
+                text-transform: uppercase;
+                font-weight: 600;
+                color: #222;
+            }
+
+            .skilled_sec h6.text-end {
+                text-align: right;
+                margin: 0 0 10px;
+                font-size: 14px;
+                font-weight: 500;
+                color: #222;
+            }
+
+            .skilled_sec h5 {
+                text-align: center;
+                margin: 0 0 18px;
+                font-size: 15px;
+                font-weight: 600;
+                color: #666;
+            }
+
+        .radio_btns {
+            margin: 0 0 20px;
+        }
+
+            .radio_btns label {
+                display: inline-block;
+                align-items: normal;
+                font-size: 13px;
+                font-weight: 500;
+                padding-right: 10px;
+                cursor: pointer;
+            }
+
+                .radio_btns label input {
+                    margin: 0 4px 0 0;
+                    vertical-align: middle;
+                }
+
+        .checkbox_list label {
+            display: table;
+            width: auto;
+            padding: 4px 3px;
+            font-size: 12px;
+            font-weight: 500;
+            vertical-align: middle;
+            cursor: pointer;
+            line-height: 12px;
+        }
+
+        .checkbox_list {
+            padding: 5px 0 0;
+        }
+
+            .checkbox_list label input {
+                margin: 0 4px 0 0;
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+        .skilled_sec h3 {
+            font-size: 16px;
+            text-transform: uppercase;
+            font-weight: 600;
+            text-align: center;
+            margin: 0;
+            padding: 10px 0;
+        }
+
+        .form-group {
+            margin: 0 0 15px;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 13px;
+                font-weight: 500;
+                color: #666;
+                margin: 0 0 3px;
+            }
+
+        .form-control {
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 100%;
+            padding: 6px 12px;
+            outline: none;
+        }
+
+        textarea.form-control {
+            height: 50px;
+        }
+
+        .checkbox_list td {
+            border: none;
+            padding: 0;
+        }
+
+        .checkbox_list label span {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+            .checkbox_list label span:first-child {
+                width: 16px;
+                min-width: 16px;
+                max-width: 16px;
+            }
+
+        .border_box {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+            .border_box input[type="text"] {
+                border: 1px solid #ccc;
+                height: 32px;
+                border-radius: 4px;
+                padding: 8px;
+                margin-bottom: 7px;
+            }
+
+        th.border_box {
+            border: none;
+            text-align: left;
+            padding: 0 8px 0px 0px;
+        }
+
+            th.border_box:last-child {
+                padding-right: 0px;
+            }
+
+        .skilled_sec h4 {
+            margin: 0 0 8px;
+            text-align: center;
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: 500;
+            color: #222;
+        }
+
+        .table_style thead th {
+            font-size: 13px;
+            text-align: left;
+            padding: 6px 8px;
+            font-weight: 600;
+        }
+
+        .table_style tbody th {
+            font-size: 13px;
+            text-align: left;
+            padding: 7px 8px;
+            background: #f9f9f9;
+            font-weight: 600;
+        }
+
+        .table_style tbody td {
+            font-size: 13px;
+            text-align: left;
+            padding: 5px 8px;
+        }
+
+        .table-bordered {
+            border: 1px solid #dee2e6;
+            border-collapse: collapse;
+        }
+
+            .table-bordered td, .table-bordered th {
+                border: 1px solid #dee2e6;
+            }
+
+        .table_style tbody tr:nth-child(odd) {
+            background: #f9f9f9;
+        }
+
+        .table_style tbody tr:nth-child(even) {
+            background: #fff;
+        }
+
+        .checkbox_list_view label {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="skilled_sec">
+        <h2>PLAN OF CARE</h2>
+
+        <table style="width:100%;border: 0;border-spacing: 0; margin-top:25px;">
+            <tbody>
+                <tr>
+                    <td style="width:33.33%;">
+                        <div class="form-group" style="padding:0 2px;">
+                            <label>Patient's HI Claim No</label>
+                            <input type="text" class="form-control" value="[[PatientClaimNo]]" />
+                        </div>
+                    </td>
+                    <td style="width:33.33%;">
+                        <div class="form-group" style="padding:0 2px;">
+                            <label>Start of Care Date</label>
+                            <input type="text" class="form-control" value="[[CareStartDate]]" />
+                        </div>
+                    </td>
+                    <td style="width:33.33%;">
+                        <div class="form-group" style="padding:0 2px;">
+                            <label>Cetification Period</label>
+                            <div class="">
+                                <input style="width:48%;display: inline-block;" type="text" class="form-control" value="[[CertificationFrom]]" />
+                                <input style="width:48%;display: inline-block;" type="text" class="form-control" value="[[CertificationTo]]" />
+                            </div>
+                        </div>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td style="width:33.33%;">
+                        <div class="form-group" style="padding:0 2px;">
+                            <label>Medical Record No</label>
+                            <input type="text" class="form-control" value="[[MedicalRecordNo]]" />
+                        </div>
+                    </td>
+                    <td style="width:33.33%;">
+                        <div class="form-group" style="padding:0 2px;">
+                            <label>Provider No</label>
+                            <input type="text" class="form-control" value="[[ProviderNo]]" />
+                        </div>
+                    </td>
+
+                </tr>
+
+            </tbody>
+        </table>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 510px;">ELIGIBILITY(PLEASE DESCRIBE THE TYPE OF SERVICE THE PATIENT WILL RECEIVE)</span>
+            <textarea class="form-control">[[Eligibility]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 75px;">DIAGNOSIS</span>
+            <textarea class="form-control">[[DiagnosisC]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 102px;">Medications</span>
+            <textarea class="form-control">[[Medicationsl]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 102px;">DME/SUPPLIES</span>
+            <textarea class="form-control">[[DmeSuppliesi]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 128px;">SAFETY MEASURES</span>
+            <textarea class="form-control">[[SafetyMeasures]]</textarea>
+        </div>
+        <table style="width:100%;border: 0;border-spacing: 0; margin:5px 0;">
+            <tbody>
+                <tr>
+                    <td style="width:50%;">
+                        <div class="form-group" style="padding:0 2px;">
+                            <label>Date of verbal SOC</label>
+                            <input type="date" class="form-control" value="[[VerbalSOCDate]]" />
+                        </div>
+                    </td>
+                    <td style="width:50%;">
+                        <div class="form-group" style="padding:0 2px;">
+                            <label>Date HHA received Signed POT</label>
+                            <input type="date" class="form-control" value="[[HHAReceivedDate]]" />
+                        </div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 220px;">PHYSICIAN'S NAME AND ADDRESS</span>
+            <table style="width:100%;border: 0;border-spacing: 0;">
+                <tbody>
+                    <tr>
+                        <td style="width:50%;">
+                            <textarea class="form-control">[[PhysicianName]]</textarea>
+                        </td>
+                        <td style="width:50%;">
+                            <textarea class="form-control">[[PhysicianAddress]]</textarea>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 190px;">NUTRITIONAL REQUIRMENTS</span>
+            <textarea class="form-control">[[NutritionalRequirements]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 73px;">ALLERGIES</span>
+            <textarea class="form-control">[[Allergies]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 172px;">FUNCTIONAL LIMITATIONS</span>
+            <textarea class="form-control">[[FunctionalLimitations]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 150px;">ACTIVITES PERMITTED</span>
+            <textarea class="form-control">[[ActivitiesPermitted]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 110px;">MENTAL STATUS</span>
+            <textarea class="form-control">[[MentalStatus]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 85px;">PROGNOSIS</span>
+            <textarea class="form-control">[[Prognosis]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 108px;">INTERVENTIONS</span>
+            <textarea class="form-control">[[Interventions]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 50px;">GOALS</span>
+            <textarea class="form-control">[[Goals]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 150px;">ADVANCE DIRECTIVIES</span>
+            <textarea class="form-control">[[AdvanceDirectives]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 127px;">REHAB POTENTIAL</span>
+            <textarea class="form-control">[[RehabPotential]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 152px;">DISCHARGE PLANNING</span>
+            <textarea class="form-control">[[DischargePlanning]]</textarea>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width: 97px;">FREQUENCIES</span>
+            <textarea class="form-control">[[Frequencies]]</textarea>
+        </div>
+
+    </div>
+
+    <div class="skilled_sec">
+        <h2>CNA PLAN OF CARE</h2>
+        <div class="form-group">
+            <div class="border_box">
+                <label for="">Loctaion Name:</label>
+                <input type="text" placeholder="rdrt" style="width:100%;" [[LocationName]]/>
+            </div>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width:auto;">Pertinent Information</span>
+            <div class="checkbox_list">
+                <table style="width:100%;border: 0;border-spacing: 0;">
+                    <tbody>
+                        <tr>
+                            <th class="border_box" style="width:50%">
+                                <label for="">Code Status:</label>
+                                <input type="text" style="width:100%;" value="[[CodeStatus]]" />
+                            </th>
+                            <th class="border_box" style="width:50%">
+                                <label for="">Allergies:</label>
+                                <input type="text" value="[[Allergies]]" style="width:100%;" />
+                            </th>
+                        </tr>
+                        <tr>
+                            <th class="border_box" style="width:50%">
+                                <label for="">Diagnosis:</label>
+                                <input type="text" value="[[Diagnosis]]" style="width:100%;" />
+                            </th>
+                            <th class="border_box" style="width:50%">
+                                <label for="">Diet:</label>
+                                <input type="text" value="[[Diet]]" style="width:100%;" />
+                            </th>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><label><span><input type="checkbox" [[IsAlertChecked]]></span><span>Alert</span></label></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                                <div class="checkbox_list_view">
+                                    <label>Oriented</label>
+                                    <label><span><input type="checkbox" [[IsOrientedPersonChecked]]></span><span>Person</span></label>
+                                    <label><span><input type="checkbox" [[IsOrientedTimeChecked]]></span><span>Time</span></label>
+                                    <label><span><input type="checkbox" [[IsOrientedPlaceChecked]]></span><span>Place</span></label>
+                                    <label><span><input type="checkbox" [[IsOrientedConfusedChecked]]></span><span>Forgetful/Confused</span></label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><label><span><input type="checkbox" [[IsDenturesChecked]]></span><span>Dentures</span></label></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                                <div class="checkbox_list_view">
+                                    <label><span><input type="checkbox" [[IsDentureUpperChecked]]></span><span>Upper</span></label>
+                                    <label><span><input type="checkbox" [[IsDentureLowerChecked]]></span><span>Lower</span></label>
+                                    <label><span><input type="checkbox" [[IsDenturePartialChecked]]></span><span>Partial</span></label>
+                                    <label><span><input type="checkbox" [[IsBedBoundChecked]]></span><span>Bed Bound</span></label>
+                                    <label><span><input type="checkbox" [[IsBedRestWithBrpChecked]]></span><span>Bed rest with BRP</span></label>
+                                    <label><span><input type="checkbox" [[IsUpAsToleratedChecked]]></span><span>Up as tolerated</span></label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><label><span><input type="checkbox" [[IsHearingDeficitChecked]]></span><span>Hearing Deficit</span></label></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="checkbox_list_view">
+                                    <label><span><input type="checkbox" [[IsHearingDeficitAidChecked]]></span><span>Upper</span></label>
+                                    <input style="width:100%;" type="text" class="form-control">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><label><span><input type="checkbox" [[IsHearingDeficitSpeechChecked]]></span><span>Speech/Communication Deficit</span></label></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><label><span><input type="checkbox" [[IsVisualDeficitChecked]]></span><span>visiule Deficit:</span></label></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                                <div class="checkbox_list_view">
+                                    <label><span><input type="checkbox" [[IsVisualDeficitGlassesChecked]]></span><span>Glasses</span></label>
+                                    <label><span><input type="checkbox" [[IsVisualDeficitContactsChecked]]></span><span>Contact</span></label>
+                                    <label><span><input type="checkbox" [[IsVisualDeficitOtherChecked]]></span><span>Other</span></label>
+                                    <input style="width:100%;" type="text" class="form-control">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><label><span><input type="checkbox" [[IsAssistiveDevicesChecked]]></span><span>Assitive Device:</span></label></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                                <div class="checkbox_list_view">
+                                    <label><span><input type="checkbox" [[IsAssistiveDevicesWCChecked]]></span><span>WC</span></label>
+                                    <label><span><input type="checkbox" [[IsAssistiveDevicesWalkerChecked]]></span><span>Walker</span></label>
+                                    <label><span><input type="checkbox" [[IsAssistiveDevicesCaneChecked]]></span><span>Cane</span></label>
+                                    <label><span><input type="checkbox" [[IsAssistiveDevicesCrutchesChecked]]></span><span>Crutches</span></label>
+                                    <label><span><input type="checkbox" [[IsAssistiveDevicesBraceSplintChecked]]></span><span>Brance/Splint</span></label>
+                                    <label><span><input type="checkbox" [[IsAssistiveDevicesOtherChecked]]></span><span>Other</span></label>
+                                    <input style="width:100%;" type="text" class="form-control" value="[[AssistiveDevicesOther]]">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="checkbox_list_view">
+                                    <label><span><input type="checkbox" [[IsPertientInformationOtherChecked]]></span><span>Other</span></label>
+                                    <input style="width:100%;" type="text" class="form-control" value="[[PertientInformationOther]]">
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="border_box">
+                <label for="">Loctaion Number:</label>
+                <input type="text" placeholder="rdrt" style="width:100%;" value=" [[LocationNumber]]"/>
+            </div>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width:auto;">Observation to Report to Supervisior/Case Manager</span>
+            <div class="checkbox_list">
+                <table style="width:100%;border: 0;border-spacing: 0;" class="table_style table-bordered">
+                    <tbody>
+                        <tr>
+                            <td><input type="checkbox" [[IsObserveTempChecked]]> Temperature</td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveTempOverChecked]]> Over:</label><input style="width:auto;" type="text" class="form-control" value="[[ObserveTempOver]]"></td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveTempUnderChecked]]> Under:</label><input style="width:auto;" type="text" class="form-control" value="[[ObserveTempUnder]]"></td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" [[IsObservePulseChecked]]>Pulse</td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObservePulseOverChecked]]> Over:</label><input style="width:auto;" type="text" class="form-control" value="[[ObservePulseOver]]"></td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObservePulseUnderChecked]]> Under:</label><input style="width:auto;" type="text" class="form-control" value="[[ObservePulseUnder]]"></td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" [[IsObserveRespirationChecked]]>Respirations</td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveRespirationOverChecked]]> Over:</label><input style="width:auto;" type="text" value="[[ObserveRespirationOver]]" class="form-control"></td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveRespirationUnderChecked]]> Under:</label><input style="width:auto;" type="text" value="[[ObserveRespirationUnder]]" class="form-control"></td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" [[IsObserveBPChecked]]>Blood Pressure</td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveBPOverChecked]]> Over:</label><input style="width:auto;" type="text" value="[[ObserveBPOver]]" class="form-control"></td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveBPUnderChecked]]> Under:</label><input style="width:auto;" value="[[ObserveBPUnder]]" type="text" class="form-control"></td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" [[IsObserveIntakeChecked]]>Intake amounts</td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveIntakeOverChecked]]> Over:</label><input style="width:auto;" value="[[ObserveIntakeOver]]" type="text" class="form-control"></td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveIntakeUnderChecked]] > Under:</label><input style="width:auto;" type="text" value="[[ObserveIntakeUnder]]" class="form-control"></td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" [[IsObserveOutputAmountChecked]]>Output Amount</td>
+                            <td><label style="display: inline-block;"><input type="checkbox" [[IsObserveOutputAmountOverChecked]]> Over:</label><input style="width:auto;" value="[[ObserveOutputAmountOver]]" type="text" class="form-control"></td>
+                            <td><label style="display: inline-block;"><input type="checkbox"  [[IsObserveOutputAmountUnderChecked]]> Under:</label><input style="width:auto;" type="text" value="[[ObserveOutputAmountUnder]]" class="form-control"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+                <div class="checkbox_list full_width">
+                    <div class="checkbox_list_view">
+                        <label><span><input type="checkbox" [[IsObserveNoBMInDaysChecked]]></span><span>No BM in days</span></label>
+                    </div>
+                    <div class="checkbox_list_view">
+                        <label><span><input type="checkbox" [[IsObservePainAboveChecked]]></span><span>Pain above:</span></label>
+                        <input style="width:100%;" type="text" value="[[ObservePainAbove]]" class="form-control">
+                    </div>
+                    <div class="checkbox_list_view">
+                        <label><span><input type="checkbox" [[IsObserveChangesInSkinChecked]]></span><span>Change in skin:</span></label>
+                        <input style="width:100%;" value="[[ObserveChangesInSkin]]" type="text" class="form-control">
+                    </div>
+                    <div class="checkbox_list_view">
+                        <label><span><input type="checkbox" [[IsObserveReddenedAreaChecked]]></span><span>Reddened area</span></label>
+                        <label><span><input type="checkbox" [[IsObserveReddenedOtherChecked]]></span><span>Others:</span></label>
+                        <input style="width:100%;" value="[[ObserveReddenedOther]]" type="text" class="form-control">
+                    </div>
+                    <div class="checkbox_list_view">
+                        <label><span><input type="checkbox" [[IsObserveWeightChecked]]></span><span>Weight</span></label>
+                        <label><span><input type="checkbox" [[IsObserveWeightGainChecked]]></span><span>Gain</span></label>
+                        <label><span><input type="checkbox" [[IsObserveWeightLossChecked]]></span><span>loss of lb over(time period)</span></label>
+                        <input style="width:100%;" value="[[ObserveWeightLoss]]" type="text" class="form-control">
+                    </div>
+                    <div class="checkbox_list_view">
+                        <label><span><input type="checkbox" [[IsObserveOther1Checked]]></span><span>Other:</span></label>
+                        <input style="width:100%;" value="[[ObserveOther1]]" type="text" class="form-control">
+                    </div>
+                    <div class="checkbox_list_view">
+                        <label><span><input type="checkbox" [[IsObserveOther2Checked]]></span><span>Other:</span></label>
+                        <input style="width:100%;" type="text" value="[[ObserveOther2]]" class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width:auto;">PRECAUTIONS/SAFETY</span>
+            <div class="checkbox_list">
+                <table style="width:100%; border: 0; border-spacing: 0;">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsSafetyFallPrecautionsChecked]]></span><span>Fall precautions</span></label></td>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsSafetyAmbulateOnlyChecked]]></span><span>Ambulat only with assistance</span></label></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsSafetySideRailsUpChecked]]></span><span>Side rails up</span></label></td>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsSafetySwallowingChecked]]></span><span>Swallowing precautions</span></label></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsSafetyHipChecked]]></span><span>Hip precautions</span></label></td>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsSafetySeizureChecked]]></span><span>Siezure precautions</span></label></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsSafetyBleedingChecked]]></span><span>Bleeding precautions</span></label></td>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsSafetyProneToFracturesChecked]]></span><span>Siezure Prone to fractures</span></label></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%">
+                                                <label><span><input type="checkbox" class="[[IsSafetyOther1Checked]]"></span><span>Other</span></label>
+                                                <input style="width:100%;" type="text" value="[[SafetyOther1]]" class="form-control">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%">
+                                                <label><span><input type="checkbox" [[IsSafetyOther2Checked]]></span><span>Other</span></label>
+                                                <input style="width:100%;" type="text" value="[[SafetyOther2]]" class="form-control">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="fieldset_box">
+            <span class="legend_txt" style="width:auto;">Special Instructions</span>
+            <div class="checkbox_list">
+                <table style="width:100%; border: 0; border-spacing: 0;">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsInstructionsAmputeeChecked]]></span><span>Amputee/Prosthesis(specify):</span></label></td>
+                                            <td style="width:50%"> <input style="width:100%;" value="[[InstructionsAmputee]]" type="text" class="form-control"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsInstructionsSpecialEquipChecked]]></span><span>Special equipment(specify):</span></label></td>
+                                            <td style="width:50%"> <input style="width:100%;" value="[[InstructionsSpecialEquip]]" type="text" class="form-control"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsInstructionsOxygenChecked]]></span><span>Oxygen use(specify):</span></label></td>
+                                            <td style="width:50%"><input style="width:100%;" type="text" value="[[InstructionsOxygen]]" class="form-control"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsInstructionsWeightChecked]]></span><span>Weight bearing restrictions(specify):</span></label></td>
+                                            <td style="width:50%"> <input style="width:100%;" type="text" value="[[InstructionsWeight]]" class="form-control"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:50%"><label><span><input type="checkbox" [[IsInstructionsOtherChecked]]></span><span>Other</span></label></td>
+                                            <td style="width:50%"> <input style="width:100%;" type="text" value="[[InstructionsOther]]" class="form-control"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="skilled_sec">
+        <h4>TASKS (SELECT DESIRED TASKS, INDICATE FREQUENCY AND ASSISTANCE REQUIRED IF APPLICABLE)</h4>
+        <div class="fieldset_box">
+            <div class="checkbox_list">
+                <table style="width:100%;border: 0;border-spacing: 0;" class="table_style table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th style="width:50px;">Assigned</th>
+                            <th style="width:160px;">Frequency</th>
+                            <th style="width:170px;">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th colspan="4">
+                                VITAL SIGNS/MEASURES EUMINATION
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>Temperature</td>
+                            <td><input type="checkbox" [[IsVitalSignsTempChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsTempFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[VitalSignsTempNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>Pulse</td>
+                            <td><input type="checkbox" [[IsVitalSignsPulseChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsPulseFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[VitalSignsPulseNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>Respirations</td>
+                            <td><input type="checkbox" [[IsVitalSignsRespirationsChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsRespirationsFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[VitalSignsRespirationsNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>Blood Pressure</td>
+                            <td><input type="checkbox" [[IsVitalSignsBPChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsBPFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[VitalSignsBPNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>Pain Rating</td>
+                            <td><input type="checkbox" [[IsVitalSignsPainRatingChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsPainRatingFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="VitalSignsPainRatingNotes" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>Weight</td>
+                            <td><input type="checkbox" [[IsVitalSignsWeightChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsWeightFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[VitalSignsWeightNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>Measure intake amounts</td>
+                            <td><input type="checkbox" [[IsVitalSignsIntakeChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsIntakeFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[VitalSignsIntakeNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>Measure output amounts</td>
+                            <td><input type="checkbox" [[IsVitalSignsOutputChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsOutputFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[VitalSignsOutputNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other</label>
+                                <input type="text" value="[[VitalSignsOther]]" class="form-control" />
+                            </td>
+                            <td><input type="checkbox" [[IsVitalSignsOtherChecked]] /></td>
+                            <td><input type="text" value="[[VitalSignsOtherFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[VitalSignsOtherNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <th colspan="4">
+                                PERSONAL CARE
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label>Bath:</label>
+                                    <label><span><input type="checkbox" [[IsPersonalCareBathChairChecked]] /></span><span>Chair</span></label>
+                                    <label><span><input type="checkbox" [[IsPersonalCareBathTubChecked]] /></span><span>Tub</span></label>
+                                    <label><span><input type="checkbox" [[IsPersonalCareBathBedChecked]] /></span><span>Bed</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareBathFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareBathNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label>Shower:</label>
+                                    <label><span><input type="checkbox" [[IsPersonalCareShowerUseChairChecked]] /></span><span>Use Shower Chair</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareShowerChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareShowerFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareShowerNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Oral Care
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareOralChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareOralFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareOralNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label>Skin Care:</label>
+                                    <label><span><input type="checkbox" [[IsPersonalCareSkinCareMoisturizeChecked]] /></span><span>Moisturize</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareSkinCareChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareSkinCareFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareSkinCareNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Check pressure area
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareCheckPressureChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareCheckPressureFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareCheckPressureNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Hair Care
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareHairCareChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareHairCareFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareHairCareNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Shampoo
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareShampooChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareShampooFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareShampooNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Peri Care
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCarePeriCareChecked] /></td>
+                            <td><input type="text" value="[[PersonalCarePeriCareFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCarePeriCareNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Foot Care
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareFootCareChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareFootCareFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareFootCareNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Clean/file nails
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareCleanNailsChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareCleanNailsFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareCleanNailsNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Assist with dressing
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareDressingChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareDressingFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareDressingNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Apply elastic stockings
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareStockingsChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareStockingsFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareStockingsNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Shave with electric razor
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareShaveChecked]] /></td>
+                            <td><input type="text" value="[[PersonalCareShaveFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareShaveNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other:</label>
+                                <input type="text" class="form-control" value="[[PersonalCareOther1]]" />
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareOther1Checked]] /></td>
+                            <td><input type="text" value="[[PersonalCareOther1Frequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareOther1Notes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other:</label>
+                                <input type="text" value="[[PersonalCareOther2]]" class="form-control" />
+                            </td>
+                            <td><input type="checkbox" [[IsPersonalCareOther2Checked]] /></td>
+                            <td><input type="text" value="[[PersonalCareOther2Frequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[PersonalCareOther2Notes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <th colspan="4">
+                                ACTIVITY
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                Assit with ammbulation
+                            </td>
+                            <td><input type="checkbox"[[IsActivityAmbulationChecked]] /></td>
+                            <td><input type="text" value="[[ActivityAmbulationFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[ActivityAmbulationNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label>Transfer assist:</label>
+                                    <label><span><input type="checkbox" [[IsActivityTransferAssistChairChecked]]/></span><span>Chair</span></label>
+                                    <label><span><input type="checkbox" [[IsActivityTransferAssistCommodeChecked]]/></span><span>Commode</span></label>
+                                    <label><span><input type="checkbox" [[IsActivityTransferAssistBedChecked]]/></span><span>Bed</span></label>
+                                    <label><span><input type="checkbox" [[IsActivityTransferAssistShowerChecked]]/></span><span>Shower</span></label>
+                                    <label><span><input type="checkbox" [[IsActivityTransferAssistTubChecked]]/></span><span>Tub</span></label>
+                                    <label><span><input type="checkbox" [[IsActivityTransferAssistHoyerLiftChecked]]/></span><span>Use Hoyer lift</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsActivityTransferAssistChecked]]/></td>
+                            <td><input type="text" value="[[ActivityTransferAssistFrequency]]" class="form-control" /></td>
+                            <td><textarea class="form-control">[[ActivityTransferAssistNotes]]</textarea></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label>Exercise per: </label>
+                                    <label><span><input type="checkbox" [[IsActivityExcercisePTChecked]]/></span><span>PT</span></label>
+                                    <label><span><input type="checkbox"  [[IsActivityExcerciseOTChecked]] /></span><span>OT</span></label>
+                                    <label><span><input type="checkbox"  [[IsActivityExcerciseSLPChecked]]/></span><span>SPL</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsActivityExcerciseChecked]] /></td>
+                            <td><input type="text" value="[[ActivityExcerciseFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[ActivityExcerciseNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <th colspan="4">
+                                ELIMINATION
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                Date of last BM
+                            </td>
+                            <td><input type="checkbox" [[IsEliminationLastBMChecked]]/></td>
+                            <td><input type="text" value="[[EliminationLastBMFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EliminationLastBMNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Assist with toileting
+                            </td>
+                            <td><input type="checkbox" [[IsEliminationAssistWithToiletChecked]]/></td>
+                            <td><input type="text" value="[[EliminationAssistWithToiletFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EliminationAssistWithToiletNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Bedpan/Urinal
+                            </td>
+                            <td><input type="checkbox" [[ IsEliminationBedPanChecked]]/></td>
+                            <td><input type="text" value="[[EliminationBedPanFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EliminationBedPanNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label>Catheter Care:</label>
+                                    <label><span><input type="checkbox" [[ IsEliminationCCareExternalChecked]]/></span><span>External</span></label>
+                                    <label><span><input type="checkbox" [[IsEliminationCCareUrethralChecked]]/></span><span>Urethral</span></label>
+                                    <label><span><input type="checkbox" [[IsEliminationCCareSuprapublicChecked]]/></span><span>Suprapublic</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsEliminationCCareChecked]]/></td>
+                            <td><input type="text" value="[[EliminationCCareFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EliminationCCareNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Empty urine bag
+                            </td>
+                            <td><input type="checkbox" [[IsEliminationUrineBagChecked]]/></td>
+                            <td><input type="text"value="[[EliminationUrineBagFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EliminationUrineBagNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Ostomy care
+                            </td>
+                            <td><input type="checkbox" [[IsEliminationOstomyChecked]]/></td>
+                            <td><input type="text" value="[[EliminationOstomyFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EliminationOstomyNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other:</label>
+                                <input type="text" value="[[EliminationOther1]]" class="form-control" />
+                            </td>
+                            <td><input type="checkbox" [[IsEliminationOther1Checked]]/></td>
+                            <td><input type="text" value="[[EliminationOther1Frequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EliminationOther1Notes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other:</label>
+                                <input type="text" value="[[EliminationOther2]]" class="form-control" />
+                            </td>
+                            <td><input type="checkbox" [[IsEliminationOther2Checked]]/></td>
+                            <td><input type="text" value="[[EliminationOther2Frequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EliminationOther2Notes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <th colspan="4">
+                                NUTRITION DIET
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                Prepare meals
+                            </td>
+                            <td><input type="checkbox" [[IsNutritionPrepMealsChecked]]/></td>
+                            <td><input type="text" value="[[NutritionPrepMealsFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[NutritionPrepMealsNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Prepare snacks
+                            </td>
+                            <td><input type="checkbox" [[IsNutritionPrepSnacksChecked]] /></td>
+                            <td><input type="text" value="[[NutritionPrepSnacksFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[NutritionPrepSnacksNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Assist with feeding
+                            </td>
+                            <td><input type="checkbox" [[IsNutritionFeedingChecked]]/></td>
+                            <td><input type="text" value="[[NutritionFeedingFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[NutritionFeedingNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label>Fluids:</label>
+                                    <label><span><input type="checkbox" [[IsNutritionFluidsLimitChecked]] /></span><span>Limit</span></label>
+                                    <label><span><input type="checkbox" [[IsNutritionFluidsEncourageChecked]]/></span><span>Encourage</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsNutritionFluidsChecked]]/></td>
+                            <td><input type="text" value="[[NutritionFluidsFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[NutritionFluidsNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other:</label>
+                                <input type="text" value="[[NutritionOther]]" class="form-control" />
+                            </td>
+                            <td><input type="checkbox" [[IsNutritionOtherChecked]]/></td>
+                            <td><input type="text" value="[[NutritionOtherFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[NutritionOtherNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <th colspan="4">
+                                ENVIROMENTAL
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label>Tidy/Clean:</label>
+                                    <label><span><input type="checkbox" [[IsEnviromentalCleanBathroomChecked]] /></span><span>Bathroom</span></label>
+                                    <label><span><input type="checkbox" [[IsEnviromentalCleanBedroomChecked]]/></span><span>Bedroom</span></label>
+                                    <label><span><input type="checkbox" [[IsEnviromentalCleanLivingChecked]]/></span><span>Living Room</span></label>
+                                    <label><span><input type="checkbox" [[IsEnviromentalCleanKitchenChecked]]/></span><span>Kitchen</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsEnviromentalCleanChecked]]/></td>
+                            <td><input type="text" value="[[EnviromentalCleanFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EnviromentalCleanNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Laundry
+                            </td>
+                            <td><input type="checkbox" [[IsEnviromentalLaundryChecked]]/></td>
+                            <td><input type="text" value="[[EnviromentalLaundryFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EnviromentalLaundryNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Change Bed linen
+                            </td>
+                            <td><input type="checkbox" [[IsEnvironmentalBedLinenChecked]]/></td>
+                            <td><input type="text" value="[[EnvironmentalBedLinenFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EnvironmentalBedLinenNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Equipment care
+                            </td>
+                            <td><input type="checkbox" [[IsEnvironmentalEquipCareChecked]]/></td>
+                            <td><input type="text" value="[[EnvironmentalEquipCareFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EnvironmentalEquipCareNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other:</label>
+                                <input type="text" value="[[EnvironmentalOther]]" class="form-control" />
+                            </td>
+                            <td><input type="checkbox" [[IsEnvironmentalOtherChecked]]/></td>
+                            <td><input type="text" value="[[EnvironmentalOtherFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[EnvironmentalOtherNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <th colspan="4">
+                                MEDICATIONS
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                Assist with self administration
+                            </td>
+                            <td><input type="checkbox" [[IsMedicationSelfAssistChecked]]/></td>
+                            <td><input type="text" value="[[MedicationSelfAssistFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[MedicationSelfAssistNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Medications reminder
+                            </td>
+                            <td><input type="checkbox" [[IsMedicationReminderChecked]]/></td>
+                            <td><input type="text" value="[[MedicationReminderFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[MedicationReminderNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Reposition everyday
+                            </td>
+                            <td><input type="checkbox" [[IsActivityRepositionChecked]]/></td>
+                            <td><input type="text" value="[[ActivityRepositionFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[ActivityRepositionNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="checkbox_list_view">
+                                    <label style="width:100%;">ROM:</label>
+                                    <label><span><input type="checkbox" [[IsActivityROMActiveChecked]]/></span><span>Active</span></label>
+                                    <label><span><input type="checkbox" [[IsActivityROMPassiveChecked]]/></span><span>Passive</span></label>
+                                </div>
+                                <div class="checkbox_list_view">
+                                    <label style="width:100%;">Arm:</label>
+                                    <label><span><input type="checkbox" [[IsActivityArmRightChecked]]/></span><span>Right</span></label>
+                                    <label><span><input type="checkbox" [[IsActivityArmLeftChecked]]/></span><span>Left</span></label>
+                                </div>
+                                <div class="checkbox_list_view">
+                                    <label style="width:100%;">Leg:</label>
+                                    <label><span><input type="checkbox" [[IsActivityLegRightChecked]]/></span><span>Right</span></label>
+                                    <label><span><input type="checkbox" [[IsActivityLegLeftChecked]]/></span><span>Left</span></label>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" [[IsActivityROMChecked]]/></td>
+                            <td><input type="text" value="[[NutritionFluidsFrequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[NutritionFluidsNotes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other:</label>
+                                <input type="text" value="[[ActivityOther1]]" class="form-control" />
+                            </td>
+                            <td><input type="checkbox" [[IsActivityOther1Checked]]/></td>
+                            <td><input type="text" value="[[ActivityOther1Frequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[ActivityOther1Notes]]" class="form-control" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label style="margin-bottom:3px;">Other:</label>
+                                <input type="text" value="[[ActivityOther2]]" class="form-control" />
+                            </td>
+                            <td><input type="checkbox" [[IsActivityOther2Checked]]/></td>
+                            <td><input type="text" value="[[ActivityOther2Frequency]]" class="form-control" /></td>
+                            <td><input type="text" value="[[ActivityOther2Notes]]" class="form-control" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

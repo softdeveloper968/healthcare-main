@@ -1,0 +1,304 @@
+﻿@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Buttons
+@using GaHealthcareNurses.Entity.ViewModels
+@using Newtonsoft.Json
+@using GaHealthcareNurses.Entity.Models
+@using GaHealthcareNurses.Entity.Common
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IToastService toastService
+
+<div class="summaries_data">
+    <SfGrid DataSource="DataSource" AllowPaging="true" AllowSorting="true" Toolbar="@(new List<string>() { "Search" })">
+        <GridEvents RowSelected="RowSelecthandler" TValue="GetServiceRequestListResponseModel"></GridEvents>
+        <GridPageSettings PageCount="8" PageSize="5" PageSizes="true"></GridPageSettings>
+        <GridColumns>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.CareRecipient)" Width="100" HeaderText="Care Recipient" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.Age)" Width="40" HeaderText="Age" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.ServiceRequired)" Width="100" HeaderText="Service Required" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.StartDate)" Width="90" HeaderText="Start Date" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.EndDate)" Width="90" HeaderText="End Date" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.TotalHours)" Width="40" HeaderText="Hrs." TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.Frequency)" Width="100" HeaderText="Frequency" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.Location)" Width="90" HeaderText="Location" TextAlign="TextAlign.Left"></GridColumn>
+            @if (UserRole != UserRoles.Employer.ToString())
+            {
+                <GridColumn Field="@nameof(GetServiceRequestListResponseModel.Agency)" Width="85" HeaderText="Agency" TextAlign="TextAlign.Left"></GridColumn>
+            }
+            @if (UserRole != UserRoles.Nurse.ToString())
+            {
+                <GridColumn Field="@nameof(GetServiceRequestListResponseModel.CareGiver)" Width="80" HeaderText="Care Giver" TextAlign="TextAlign.Left"></GridColumn>
+            }
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.Skill)" Width="80" HeaderText="Skill" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetServiceRequestListResponseModel.Status)" Width="60" HeaderText="Status" TextAlign="TextAlign.Left"></GridColumn>
+            @if (UserRole != UserRoles.Nurse.ToString())
+            {
+                <GridColumn Width="30" TextAlign="TextAlign.Right" CustomAttributes="@(new Dictionary<string, object>(){ { "class", "actions_btns" }})">
+                    <Template>
+                        @{
+                            var serviceRequest = (context as GetServiceRequestListResponseModel);
+                            <div class="dropdown text-right">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></a>
+                                <ul class="dropdown-menu animated">
+                                    @if (UserRole == UserRoles.Employer.ToString())
+                                    {
+                                        <li><a href="javascript:void(0)" @onclick="CreateServiceRequest"><i class="fas fa-plus-square"></i> New</a></li>
+                                        <li><a @onclick="()=>UpdateServiceRequest(serviceRequest.JobId)" href="javascript:void(0)"><i class="far fa-edit"></i> Edit</a></li>
+                                        @*<li><a href="javascript:void(0)"><i class="far fa-edit"></i> Edit</a></li>*@
+                                        <li><a href="javascript:void(0)" @onclick="()=>OnClickDuplicate(serviceRequest)"><i class="far fa-clone"></i> Duplicate</a></li>
+                                    }
+
+                                    <li><a href="javascript:void(0)" @onclick="()=>DeleteServiceRequestConfirmation(serviceRequest.JobId)"><i class="fas fa-trash-alt"></i> Delete</a></li>
+
+                                    @if (UserRole == UserRoles.Client.ToString() && serviceRequest.Status == "Completed")
+                                    {
+                                        <li><a href="javascript:void(0)" @onclick="()=>SelectClientRating(serviceRequest)"> Select Rating</a></li>
+                                    }
+                                    @if (UserRole == UserRoles.Admin.ToString() && serviceRequest.Status == "Created")
+                                    {
+                                        <li><a href="javascript:void(0)" @onclick="()=>SelectAgenciesForBid(serviceRequest.JobId)"> Select Agencies To Bid</a></li>
+                                    }
+                                    @if (UserRole == UserRoles.Employer.ToString())
+                                    {
+                                        @if (!serviceRequest.IsSupervisoryCreated)
+                                        {
+                                            <li><a href="javascript:void(0)" @onclick="()=>CreateSupervisoryVisit(serviceRequest)"> Create Supervisory Visit</a></li>
+                                        }
+                                        @if (!serviceRequest.IsInitialAssessmentCreated)
+                                        {
+                                            <li><a href="javascript:void(0)" @onclick="()=>CreateAssessment(serviceRequest)"> Create Initial Assessment</a></li>
+                                        }
+                                        @if (!serviceRequest.IsCarePlanCreated)
+                                        {
+                                            <li><a href="javascript:void(0)" @onclick="()=>CreateCarePlan(serviceRequest)"> Create Care Plan</a></li>
+                                        }
+                                        @if (!serviceRequest.IsDischargeSummaryCreated)
+                                        {
+                                            <li><a href="javascript:void(0)" @onclick="()=>CreateDischargeSummary(serviceRequest)"> Create Discharge Summary</a></li>
+                                        }
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    </Template>
+                </GridColumn>
+            }
+        </GridColumns>
+    </SfGrid>
+    <SfTooltip Target="#target" Content="@Content" Position="Position.TopCenter">
+        <SfButton ID="target" CssClass="e-round plus_icons" IsPrimary="true" @onclick="CreateServiceRequest"><i class="fas fa-plus"></i></SfButton>
+    </SfTooltip>
+        
+</div>
+<SfDialog @ref="duplicateServiceRequestDialog" Width="575px" Visible="false" ShowCloseIcon="true" IsModal="true">
+    <DialogEvents Closed="CloseDuplicateServiceRequestDialog"></DialogEvents>
+    <DialogTemplates>
+        <Header>Duplicate Service Request</Header>
+        <Content>
+            "You are about to create a duplicate of the Service Request for Care Recipient -
+            <b>@GetServiceRequestListResponseModel.CareRecipient</b> .Do you want to proceed?"
+        </Content>
+    </DialogTemplates>
+    <DialogButtons>
+        <DialogButton OnClick="()=>CreateDuplicateSR(GetServiceRequestListResponseModel.JobId)" Content="Yes" IsPrimary="true"></DialogButton>
+        <DialogButton OnClick="CloseDuplicateServiceRequestDialog" Content="No"></DialogButton>
+    </DialogButtons>
+</SfDialog>
+
+<SfDialog @ref="deleteServiceRequestDialog" Width="500px" Visible="false" ShowCloseIcon="true" IsModal="true">
+    <DialogEvents Closed="CloseDeleteServiceRequestDialog"></DialogEvents>
+    <DialogTemplates>
+        <Header> Delete Service Request</Header>
+        <Content> Are you sure you want to delete this service request?</Content>
+    </DialogTemplates>
+    <DialogButtons>
+        <DialogButton OnClick="DeleteServiceRequest" Content="Yes" IsPrimary="true"></DialogButton>
+        <DialogButton OnClick="CloseDeleteServiceRequestDialog" Content="No"></DialogButton>
+    </DialogButtons>
+</SfDialog>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    string Content = "New";
+    [Parameter]
+    public List<GetServiceRequestListResponseModel> DataSource { get; set; }
+    public GetServiceRequestListResponseModel GetServiceRequestListResponseModel = new GetServiceRequestListResponseModel();
+    [Parameter]
+    public string UserRole { get; set; }
+    [Parameter]
+    public EventCallback<int> OnDataSourceRefresh { get; set; }
+    [Parameter]
+    public EventCallback<GetServiceRequestListResponseModel> RowSelected { get; set; }
+    [Parameter]
+    public EventCallback<int> SelectAgencies { get; set; }
+    [Parameter]
+    public EventCallback<GetServiceRequestListResponseModel> SelectRating { get; set; }
+    [Parameter]
+    public string EmployerId { get; set; }
+    bool isLoading = false;
+    int serviceRequestToDelete;
+    SfDialog deleteServiceRequestDialog;
+    SfDialog duplicateServiceRequestDialog;
+
+    public async Task RowSelecthandler(RowSelectEventArgs<GetServiceRequestListResponseModel> Args)
+    {
+        await RowSelected.InvokeAsync(Args.Data);
+        StateHasChanged();
+    }
+
+    public async Task CreateSupervisoryVisit(GetServiceRequestListResponseModel model)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"SupervisoryVisit/CreateSupervisoryVisit?jobId={model.JobId}&employerId={EmployerId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnDataSourceRefresh.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        StateHasChanged();
+    }
+
+    public async Task CreateCarePlan(GetServiceRequestListResponseModel model)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"CarePlan/CreateCarePlan?jobId={model.JobId}&employerId={EmployerId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnDataSourceRefresh.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        StateHasChanged();
+    }
+
+    public async Task CreateAssessment(GetServiceRequestListResponseModel model)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"AdultAssessment/CreateAssessment?jobId={model.JobId}&employerId={EmployerId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnDataSourceRefresh.InvokeAsync();
+            navigation.NavigateTo("agency/assessments");
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        StateHasChanged();
+    }
+
+    public async Task CreateDischargeSummary(GetServiceRequestListResponseModel model)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"DischargeSummary/CreateDischargeSummary?jobId={model.JobId}&employerId={EmployerId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnDataSourceRefresh.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        StateHasChanged();
+    }
+
+    public async Task DeleteServiceRequest()
+    {
+        CloseDeleteServiceRequestDialog();
+        var responseMessage = await Http.DeleteAsync(wsp.Path + $"Job/DeleteServiceRequest?jobId={serviceRequestToDelete}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnDataSourceRefresh.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        StateHasChanged();
+    }
+
+    public void DeleteServiceRequestConfirmation(int id)
+    {
+        serviceRequestToDelete = id;
+        deleteServiceRequestDialog.Show();
+        StateHasChanged();
+    }
+
+    public void CloseDeleteServiceRequestDialog()
+    {
+        deleteServiceRequestDialog.Hide();
+    }
+
+    public async Task CreateDuplicateSR(int jobId)
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Job/CreateDuplicateServiceRequest?jobId={jobId}&employerId={EmployerId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnDataSourceRefresh.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        GetServiceRequestListResponseModel = new GetServiceRequestListResponseModel();
+        StateHasChanged();
+    }
+
+
+    public void CloseDuplicateServiceRequestDialog()
+    {
+        duplicateServiceRequestDialog.Hide();
+    }
+
+    public void OnClickDuplicate(GetServiceRequestListResponseModel model)
+    {
+        GetServiceRequestListResponseModel = model;
+        duplicateServiceRequestDialog.Show();
+        StateHasChanged();
+    }
+
+    public async Task SelectAgenciesForBid(int jobId)
+    {
+        await SelectAgencies.InvokeAsync(jobId);
+    }
+
+    public async Task SelectClientRating(GetServiceRequestListResponseModel model)
+    {
+        await SelectRating.InvokeAsync(model);
+    }
+
+    public void CreateServiceRequest()
+    {
+        navigation.NavigateTo("/service-request");
+    }
+
+    public void UpdateServiceRequest(int jobId)
+    {
+        navigation.NavigateTo($"/service-request/{jobId}");
+    }
+}

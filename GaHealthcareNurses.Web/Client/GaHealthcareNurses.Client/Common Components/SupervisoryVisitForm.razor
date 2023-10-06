@@ -1,0 +1,167 @@
+﻿@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@inject IJSRuntime jsRunTime
+@using Microsoft.JSInterop
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using GaHealthcareNurses.Entity.Common;
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+
+<EditForm Model="model" OnValidSubmit="UpdateSupervisoryVisit">
+    <DataAnnotationsValidator/>
+    <div class="skilled_nurse_sec supervisiory_page container">
+        <h2>SKILLED NURSE SUPERVISIORY VISIT</h2>
+        <h5>DATE: @DateTime.Now.ToString("MM/dd/yyyy")</h5>
+        <h3>Patient: @model.PatientName</h3>
+        <div>
+            <fieldset>
+                <legend>I. CLIENT INFORMATION</legend>
+                <div class="client_info_box">
+                    <h5>Name Of Staff Member Being Supervised: @(!string.IsNullOrEmpty(model.StaffPersonName) ? model.StaffPersonName : "N/A")</h5>
+                    <div class="d-flex">
+                        <h5>Staff Person in Home During Supervisiory Visit</h5>
+                        <SfRadioButton Disabled="View" Label="Yes" Name="IsStaffPersonInHome" Value="Yes" @bind-Checked="model.StaffPersonInHome"></SfRadioButton>
+                        <SfRadioButton Disabled="View" Label="No" Name="IsStaffPersonInHome" Value="No" @bind-Checked="model.StaffPersonInHome"></SfRadioButton>
+                        <ValidationMessage For="@(() => model.StaffPersonInHome)" />
+                    </div>
+                </div>
+
+                <div class="d-flex">
+                    <h5>Supervisiory Visit:</h5>
+                    <SfRadioButton Disabled="View" Label="COTA" Name="IsSupervisioryVisit" Value="COTA" @bind-Checked="model.SupervisoryVisitInfo"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="LPN" Name="IsSupervisioryVisit" Value="LPN" @bind-Checked="model.SupervisoryVisitInfo"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="PTA" Name="IsSupervisioryVisit" Value="PTA" @bind-Checked="model.SupervisoryVisitInfo"></SfRadioButton>
+                    <ValidationMessage For="@(() => model.SupervisoryVisitInfo)" />
+                    @*<h6>(Last Sup Visit: 08/21/2020)</h6>*@
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>II. STAFF INFORMATION</legend>
+                <div class="d-flex">
+                    <h5>Following POC:</h5>
+                    <SfRadioButton Disabled="View" Label="Yes" Name="IsFollowingPoc" Value="Yes" @bind-Checked="model.FollowingPoc"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="No*" Name="IsFollowingPoc" Value="No" @bind-Checked="model.FollowingPoc"></SfRadioButton>
+                    <ValidationMessage For="@(() => model.FollowingPoc)" />
+                </div>
+                <div class="d-flex">
+                    <h5>POC Changed</h5>
+                    <SfRadioButton Disabled="View" Label="Yes" Name="IsPocChanged" Value="Yes" @bind-Checked="model.PocChanged"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="No*" Name="IsPocChanged" Value="No" @bind-Checked="model.PocChanged"></SfRadioButton>
+                    <ValidationMessage For="@(() => model.PocChanged)" />
+                </div>
+                <div class="d-flex">
+                    <h5>Patient/Staff compatible:</h5>
+                    <SfRadioButton Disabled="View" Label="Yes" Name="IsPatientStaffCompatible" Value="Yes" @bind-Checked="model.PatientCompatible"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="No*" Name="IsPatientStaffCompatible" Value="No" @bind-Checked="model.PatientCompatible"></SfRadioButton>
+                    <ValidationMessage For="@(() => model.PatientCompatible)" />
+                </div>
+                <div class="d-flex">
+                    <h5>Communicates well with pt,rep (if any),cg and fa</h5>
+                    <SfRadioButton Disabled="View" Label="Yes" Name="IsCommunicatesWell" Value="Yes" @bind-Checked="model.CommunicatesWithPt"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="No*" Name="IsCommunicatesWell" Value="No" @bind-Checked="model.CommunicatesWithPt"></SfRadioButton>
+                    <ValidationMessage For="@(() => model.CommunicatesWithPt)" />
+                </div>
+                <div class="d-flex">
+                    <h5>Complies with infection prevention/control policies/proce</h5>
+                    <SfRadioButton Disabled="View" Label="Yes" Name="IsCompliesWithInfection" Value="Yes" @bind-Checked="model.CompilesWithInfection"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="No*" Name="IsCompliesWithInfection" Value="No" @bind-Checked="model.CompilesWithInfection"></SfRadioButton>
+                    <ValidationMessage For="@(() => model.CompilesWithInfection)" />
+                </div>
+                <div class="d-flex">
+                    <h5>Honors patient rights:</h5>
+                    <SfRadioButton Disabled="View" Label="Yes" Name="IsHonorPatientRights" Value="Yes" @bind-Checked="model.HonorsPatientRights"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="No*" Name="IsHonorPatientRights" Value="No" @bind-Checked="model.HonorsPatientRights"></SfRadioButton>
+                    <ValidationMessage For="@(() => model.HonorsPatientRights)" />
+                </div>
+                <div class="d-flex">
+                    <h5>Patient/responsible party/caregiver notified of change:</h5>
+                    <SfRadioButton Disabled="View" Label="NA" Name="IsNotifiedOfChange" Value="NA" @bind-Checked="model.PatientNotifiedOfChange"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="Yes" Name="IsNotifiedOfChange" Value="Yes" @bind-Checked="model.PatientNotifiedOfChange"></SfRadioButton>
+                    <SfRadioButton Disabled="View" Label="No*" Name="IsNotifiedOfChange" Value="No" @bind-Checked="model.PatientNotifiedOfChange"></SfRadioButton>
+                    <ValidationMessage For="@(() => model.PatientNotifiedOfChange)" />
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend class="transform_none">*Specify details and any follow up actions:</legend>
+                <SfTextBox Enabled="!View" @bind-Value="model.Details" Multiline=true></SfTextBox>
+                <ValidationMessage For="@(() => model.Details)" />
+            </fieldset>
+            @if (!View)
+            {
+                <div class="ds_btns">
+                    <button @onclick="NavigateToSupervisoryVisitsGrid" type="button" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            }
+        </div>
+    </div>
+</EditForm>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    SupervisoryVisitRequestModel model = new SupervisoryVisitRequestModel();
+    bool isLoading = false;
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public bool View { get; set; }
+    [Parameter]
+    public string Role { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"SupervisoryVisit/GetSupervisoryVisitById?id={Id}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<SupervisoryVisitRequestModel>>(response));
+        if (result.Status == "Success")
+        {
+            model = result.Data;
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+            NavigateToSupervisoryVisitsGrid();
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task UpdateSupervisoryVisit()
+    {
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "SupervisoryVisit/UpdateSupervisoryVisit", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            NavigateToSupervisoryVisitsGrid();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public void NavigateToSupervisoryVisitsGrid()
+    {
+        if (Role == UserRoles.Nurse.ToString())
+            navigation.NavigateTo("nurse/supervisory-visits");
+        else
+            navigation.NavigateTo("agency/supervisory-visits");
+    }
+}
+
+

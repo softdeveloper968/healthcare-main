@@ -1,0 +1,712 @@
+﻿@page "/service-request"
+@page "/service-request/{id:int}"
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Calendars
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@using GaHealthcareNurses.Client.Data.ViewModels
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Navigations
+@inject IJSRuntime jsRunTime
+@using Syncfusion.Blazor.Popups
+@using Microsoft.JSInterop
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Data
+@using GaHealthcareNurses.Client.Helper
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<EditForm Model="@serviceRequest" OnValidSubmit="CreateSR" OnInvalidSubmit="CheckValidations">
+    <DataAnnotationsValidator />
+    <SfTab @bind-SelectedItem="SelectedPage" LoadOn="ContentLoad.Demand" CssClass="modal_SfTabs">
+        <TabItems>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="SR Information"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <div class="chose_service">
+                        <div class="row">
+                            <div class="@(!string.IsNullOrEmpty(serviceRequest.CareGiver) ? "col-md-6" : "col-md-12")">
+                                <div class="inputFiled form-group">
+                                    <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ServiceListId" TValue="int" TItem="ServiceList" Placeholder="Select a Service" AllowFiltering="true" DataSource="@serviceList">
+                                        <DropDownListFieldSettings Text="Name" Value="ServiceListId"></DropDownListFieldSettings>
+                                    </SfDropDownList>
+                                    <ValidationMessage For="@(() => serviceRequest.ServiceListId)" />
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(serviceRequest.CareGiver))
+                            {
+                                <div class="col-md-6">
+                                    <div class="inputFiled form-group">
+                                        <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.CareGiver" TValue="string" TItem="GetAllNursesResponseModel" Placeholder="Select a Care Giver" AllowFiltering="true" DataSource="@nurses">
+                                            <DropDownListFieldSettings Text="NurseName" Value="NurseId"></DropDownListFieldSettings>
+                                        </SfDropDownList>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="SfCheck_box">
+                            <div class="row">
+                                <div class="row-md-6 col-lg-4">
+                                    <SfCheckBox @bind-Checked="serviceRequest.IsDischargeSummaryRequired" @onchange="OnDischargeSummaryChange">Requires a Discharge Summary</SfCheckBox>
+                                    @if (serviceRequest.IsDischargeSummaryRequired)
+                                    {
+                                        <div class="inputFiled form-group">
+                                            <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.DischargeSummaryAssignedNurse" TValue="string" TItem="GetAllNursesResponseModel" Placeholder="Responsible:" AllowFiltering="true" DataSource="@nurses">
+                                                <DropDownListFieldSettings Text="NurseName" Value="NurseId"></DropDownListFieldSettings>
+                                            </SfDropDownList>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="row-md-6 col-lg-4">
+                                    <SfCheckBox @bind-Checked="serviceRequest.IsInitialAssesstmentRequired" @onchange="OnAssessmentChange">Requires Initial Assessment</SfCheckBox>
+                                    @if (serviceRequest.IsInitialAssesstmentRequired)
+                                    {
+                                        <div>
+                                            <h6>Re-assesstment every</h6>
+                                            <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ReAssessmentFrequency" />
+                                            <h6>month(s)</h6>
+                                            <ValidationMessage For="@(() => serviceRequest.ReAssessmentFrequency)" />
+                                        </div>
+                                        <div class="inputFiled form-group">
+                                            <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.InitialAssessmentAssignedNurse" TValue="string" TItem="GetAllNursesResponseModel" Placeholder="Responsible:" AllowFiltering="true" DataSource="@nurses">
+                                                <DropDownListFieldSettings Text="NurseName" Value="NurseId"></DropDownListFieldSettings>
+                                            </SfDropDownList>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="row-md-6 col-lg-4">
+                                    <SfCheckBox @bind-Checked="serviceRequest.IsSupervisoryVisitsRequired" @onchange="OnSupervisoryVisitsChange">Requires Supervisory Visits</SfCheckBox>
+                                    @if (serviceRequest.IsSupervisoryVisitsRequired)
+                                    {
+                                        <div>
+                                            <h6>Re-Visit every</h6>
+                                            <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ReVisitFrequency" />
+                                            <h6>month(s)</h6>
+                                            <ValidationMessage For="@(() => serviceRequest.ReVisitFrequency)" />
+                                        </div>
+                                        <div class="inputFiled form-group">
+                                            <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.SupervisoryVisitAssignedNurse" TValue="string" TItem="GetAllNursesResponseModel" Placeholder="Responsible:" AllowFiltering="true" DataSource="@nurses">
+                                                <DropDownListFieldSettings Text="NurseName" Value="NurseId"></DropDownListFieldSettings>
+                                            </SfDropDownList>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="inputFiled form-group">
+                                <h6 class="reqfrm_head text-left">Start Date</h6>
+                                <SfDatePicker Min="@MinDate" Placeholder="MM/DD/YYYY" @bind-Value="@serviceRequest.Date"></SfDatePicker>
+                                <ValidationMessage For="@(() => serviceRequest.Date)" />
+                            </div>
+
+                        </div>
+                        <div class="col-md-6">
+                            <div class="inputFiled form-group">
+                                <h6 class="reqfrm_head text-left">Start Time</h6>
+                                <SfTimePicker Placeholder="HH:MM AM" @bind-Value="@serviceRequest.Time"></SfTimePicker>
+                                <ValidationMessage For="@(() => serviceRequest.Time)" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="inputFiled form-group">
+                                <h6 class="reqfrm_head text-left">End Date</h6>
+                                <SfDatePicker Placeholder="MM/DD/YYYY" @bind-Value="@serviceRequest.EndDate"></SfDatePicker>
+                                <ValidationMessage For="@(() => serviceRequest.EndDate)" />
+                            </div>
+                            @if (serviceRequest.Date != null && serviceRequest.EndDate != null)
+                            {
+                                @if (DateTime.Compare((DateTime)serviceRequest.Date, (DateTime)serviceRequest.EndDate) > 0)
+                                {
+                                    <label class="validation-message">End date should be greater than start date</label>
+                                }
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <div class="inputFiled form-group">
+                                <h6 class="reqfrm_head text-left">End Time</h6>
+                                <SfTimePicker Placeholder="HH:MM AM" @bind-Value="@serviceRequest.EndTime"></SfTimePicker>
+                                <ValidationMessage For="@(() => serviceRequest.EndTime)" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="totalHoursBox">
+                        <div class="inputFiled form-group">
+                            <h6 class="reqfrm_head text-left">Total Hours</h6>
+                            <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.TotalHours" />
+                        </div>
+                    </div>
+                    <div class="select_freq modal_select_freq">
+                        <h6 class="reqfrm_head text-left">Select frequency</h6>
+                        <div class="weekDays-selector text-left">
+                            <ul>
+                                <li>
+                                    <InputCheckbox @bind-Value="serviceRequest.Days.Sunday" id="weekday-sun" class="weekday" />
+                                    <label for="weekday-sun">Sunday</label>
+                                </li>
+                                <li>
+                                    <InputCheckbox @bind-Value="serviceRequest.Days.Monday" id="weekday-mon" class="weekday" />
+                                    <label for="weekday-mon">Monday</label>
+                                </li>
+                                <li>
+                                    <InputCheckbox @bind-Value="serviceRequest.Days.Tuesday" id="weekday-tue" class="weekday" />
+                                    <label for="weekday-tue">Tuesday</label>
+                                </li>
+                                <li>
+                                    <InputCheckbox @bind-Value="serviceRequest.Days.Wednesday" id="weekday-wed" class="weekday" />
+                                    <label for="weekday-wed">Wednesday</label>
+                                </li>
+                                <li>
+                                    <InputCheckbox @bind-Value="serviceRequest.Days.Thursday" id="weekday-thu" class="weekday" />
+                                    <label for="weekday-thu">Thursday</label>
+                                </li>
+                                <li>
+                                    <InputCheckbox @bind-Value="serviceRequest.Days.Friday" id="weekday-fri" class="weekday" />
+                                    <label for="weekday-fri">Friday</label>
+                                </li>
+                                <li>
+                                    <InputCheckbox @bind-Value="serviceRequest.Days.Saturday" id="weekday-sat" class="weekday" />
+                                    <label for="weekday-sat">Saturday</label>
+                                </li>
+                            </ul>
+                        </div>
+                        @if (freqMsg)
+                        {
+                            <label class="validation-message">Frequency is required</label>
+                        }
+                    </div>
+                    <div class="skilled_nurse_sec">
+                        <fieldset>
+                            <legend class="transform_none">Rates</legend>
+                            <div class="d-flex">
+                                <div>
+                                    <h5>Agency Rate(To Client):</h5>
+                                    <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.AgencyRate" />
+                                    <ValidationMessage For="@(() => serviceRequest.AgencyRate)" />
+                                </div>
+                                <div>
+                                    <h5>Care Giver Rate:</h5>
+                                    <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.CareGiverRate" />
+                                    <ValidationMessage For="@(() => serviceRequest.CareGiverRate)" />
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="button" @onclick="GoToPatientInfoTab" class="create_account btn-theme border ">
+                            Next
+                        </button>
+                    </div>
+                </ContentTemplate>
+            </TabItem>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="Patient Information"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    <div class="inputFiled form-group">
+                        <SfTextBox Placeholder="First Name" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.FirstName" Type="InputType.Text" class="form-control" />
+                        <ValidationMessage For="@(() => serviceRequest.FirstName)" />
+                    </div>
+                    <div class="inputFiled form-group">
+                        <SfTextBox Placeholder="Middle Name" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.MiddleInitial" Type="InputType.Text" class="form-control" />
+                        <ValidationMessage For="@(() => serviceRequest.MiddleInitial)" />
+                    </div>
+                    <div class="inputFiled form-group">
+                        <SfTextBox Placeholder="Last Name" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.LastName" Type="InputType.Text" class="form-control" />
+                        <ValidationMessage For="@(() => serviceRequest.LastName)" />
+                    </div>
+                    <div class="inputFiled form-group">
+                        <SfNumericTextBox Min="1" Placeholder="Age" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.Age" class="form-control" />
+                        <ValidationMessage For="@(() => serviceRequest.Age)" />
+                    </div>
+                    <div class="inputFiled form-group">
+                        <SfTextBox Placeholder="Email" FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" class="form-control" @bind-Value="serviceRequest.EmailAddress" />
+                        <ValidationMessage For="@(() => serviceRequest.EmailAddress)" />
+                    </div>
+                    <div class="inputFiled form-group">
+                        <SfTextBox Placeholder="Address" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.AddressLine1" Type="InputType.Text" class="form-control" />
+                        <ValidationMessage For="@(() => serviceRequest.AddressLine1)" />
+                    </div>
+                    <div class="inputFiled form-group">
+                        <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.StateId" TValue="int" TItem="State" Placeholder="State" AllowFiltering="true" DataSource="@stateList">
+                            <DropDownListEvents TItem="State" TValue="int" ValueChange="OnStateChange"></DropDownListEvents>
+                            <DropDownListFieldSettings Text="Name" Value="StateId"></DropDownListFieldSettings>
+                        </SfDropDownList>
+                        <ValidationMessage For="@(() => serviceRequest.StateId)" />
+                    </div>
+                    <div class="inputFiled form-group">
+                        <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.CityId" TValue="int" TItem="City" Placeholder="City" AllowFiltering="true" DataSource="@cityList">
+                            <DropDownListEvents TItem="City" TValue="int" ValueChange="OnCityChange"></DropDownListEvents>
+                            <DropDownListFieldSettings Text="NameAndZipcode" Value="CityId"></DropDownListFieldSettings>
+                        </SfDropDownList>
+                        <ValidationMessage For="@(() => serviceRequest.CityId)" />
+                    </div>
+                    <div class="inputFiled form-group brow_fl">
+                        <SfTextBox Placeholder="Postal Code" FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" disabled @bind-Value="serviceRequest.PostalCode" class="form-control" />
+                        <ValidationMessage For="@(() => serviceRequest.PostalCode)" />
+                    </div>
+                    <div class="inputFiled form-group brow_fl">
+                        <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.GenderPreference" TValue="string" TItem="GenderPreference" Placeholder="Gender" AllowFiltering="true" DataSource="@genderPreferences">
+                            <DropDownListFieldSettings Text="Name" Value="Name"></DropDownListFieldSettings>
+                        </SfDropDownList>
+                        <ValidationMessage For="@(() => serviceRequest.GenderPreference)" />
+                    </div>
+
+                    <div class="inputFiled form-group">
+                        <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.JobTitleId" TValue="int" TItem="JobTitle" Placeholder="Request" AllowFiltering="true" DataSource="@jobTitleList">
+                            <DropDownListFieldSettings Text="Title" Value="JobTitleId"></DropDownListFieldSettings>
+                        </SfDropDownList>
+                        <ValidationMessage For="@(() => serviceRequest.JobTitleId)" />
+                    </div>
+
+                    <div class="inputFiled form-group">
+                        <SfDropDownList class="form-control" EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ClientPaymentMethod" TValue="string" TItem="ClientPaymentMethod" Placeholder="How will Client Pay" AllowFiltering="true" DataSource="@clientPaymentMethods">
+                            <DropDownListFieldSettings Text="Value" Value="Value"></DropDownListFieldSettings>
+                        </SfDropDownList>
+                        <ValidationMessage For="@(() => serviceRequest.ClientPaymentMethod)" />
+                    </div>
+
+                    <div class="inputFiled form-group">
+                        <SfTextBox Placeholder="Job Description" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.MoreInformation" Type="InputType.Text" class="form-control" Multiline="true" />
+                        <ValidationMessage For="@(() => serviceRequest.MoreInformation)" />
+                    </div>
+                    <div class="text-left form-group">
+                        <SfCheckBox Label="Is Responsible Party Same As Care Recipient" @bind-Checked="serviceRequest.IsResponsiblePartySameAsCareRecipient" @onchange="@onCheckBoxValueChange"></SfCheckBox>
+                    </div>
+                    <div id="Responsible_Party">
+                        <div class="inputFiled form-group">
+                            <SfTextBox Placeholder="Name" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceRequest.ResponsiblePartyName" disabled="@isButtonDisable" Type="InputType.Text" class="form-control" />
+                        </div>
+                        <div class="inputFiled form-group">
+                            <SfTextBox Placeholder="Email" FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" class="form-control" @bind-Value="@serviceRequest.ResponsiblePartyEmail" />
+                        </div>
+                        <div class="inputFiled form-group">
+                            <SfMaskedTextBox FloatLabelType="@FloatLabelType.Auto" Placeholder="Phone No" @bind-Value="serviceRequest.ResponsiblePartyTelephoneNumber" Mask="000-000-0000" class="form-control" />
+                        </div>
+                        <div class="inputFiled form-group">
+                            <SfTextBox Placeholder="Relationship To Care Recipient" FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" class="form-control" disabled="@isButtonDisable" @bind-Value="@serviceRequest.ResponsiblePartyRelation" />
+                        </div>
+                    </div>
+                    <div class="create_account">
+                        <div class="ds_btns">
+                            <a @onclick="GoToSRInfoTab" class="create_account btn-theme border prev_button">
+                                Back
+                            </a>
+                            <button type="button" @onclick="GoToTasksTab" class="create_account btn-theme border ">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </ContentTemplate>
+            </TabItem>
+            <TabItem>
+                <ChildContent>
+                    <TabHeader Text="Tasks"></TabHeader>
+                </ChildContent>
+                <ContentTemplate>
+                    @if (agencyData.UserDetails != null)
+                    {
+                        <SfGrid @ref="taskGrid" TValue="TaskListTemplate" AllowPaging="true" AllowSelection="true" Toolbar="@(new List<string>() { "Search" })">
+                            <GridSelectionSettings CheckboxOnly="true" PersistSelection="true"></GridSelectionSettings>
+                            <SfDataManager Url="@($"https://gahealthcarenurseswebapi.azurewebsites.net/api/TaskListTemplate/GetAll?id={agencyData.UserDetails.UserId}")" Adaptor="Adaptors.WebApiAdaptor"></SfDataManager>
+                            <GridPageSettings PageSizes="true" PageSize="10" EnableQueryString="true"></GridPageSettings>
+                            <GridEvents RowSelected="OnRowSelected" RowDeselected="OnRowDeSelected" RowDataBound="OnRowDataBound" DataBound="OnDataBound" TValue="TaskListTemplate"></GridEvents>
+                            <GridColumns>
+                                <GridColumn Type="ColumnType.CheckBox" Width="50"></GridColumn>
+                                <GridColumn Field="@nameof(TaskListTemplate.TaskListTemplateId)" HeaderText="Id" IsPrimaryKey="true" TextAlign="TextAlign.Left" Width="50"></GridColumn>
+                                <GridColumn Field="@nameof(TaskListTemplate.TaskName)" HeaderText="Task Name" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+                                <GridColumn Field="TaskListCategory.Category" TextAlign="TextAlign.Left" HeaderText="Task Category" Width="120"></GridColumn>
+                            </GridColumns>
+                        </SfGrid>
+                        <div class="create_account">
+                            <div class="ds_btns">
+                                <a @onclick="GoToPatientInfoTab" class="create_account btn-theme border prev_button">
+                                    Back
+                                </a>
+                                <button type="submit" class="create_account btn-theme border ">
+                                    @(serviceRequest.JobId == 0 ? "Create" : "Update")
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </ContentTemplate>
+            </TabItem>
+        </TabItems>
+    </SfTab>
+</EditForm>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code{
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    List<Status> statusList = new List<Status>();
+    int SelectedPage { get; set; } = 0;
+    CreateServiceRequestViewModel serviceRequest = new CreateServiceRequestViewModel();
+    List<ServiceList> serviceList = new List<ServiceList>();
+    bool freqMsg = false;
+    bool isButtonDisable { get; set; } = false;
+    DateTime MinDate { get; set; } = DateTime.Today.Date;
+    List<State> stateList = new List<State>();
+    List<City> cityList = new List<City>();
+    List<JobTitle> jobTitleList = new List<JobTitle>();
+    SfGrid<TaskListTemplate> taskGrid;
+    bool isLoading = false;
+    List<GenderPreference> genderPreferences = new List<GenderPreference>() {
+        new GenderPreference(){ Id=1, Name= "Male" },
+        new GenderPreference(){ Id= 2, Name= "Female" },
+        new GenderPreference(){ Id= 3, Name= "Unspecified" }
+    };
+    List<ClientPaymentMethod> clientPaymentMethods = new List<ClientPaymentMethod>
+{
+        new ClientPaymentMethod(){Id=1, Value="Savings"},
+        new ClientPaymentMethod(){Id=2, Value="Income"},
+        new ClientPaymentMethod(){Id=3, Value="Family Support"},
+        new ClientPaymentMethod(){Id=4, Value="Long-term care i"},
+        new ClientPaymentMethod(){Id=5, Value="VA Benefits"},
+        new ClientPaymentMethod(){Id=6, Value="Medicaid"},
+        new ClientPaymentMethod(){Id=7, Value="Other"},
+    };
+    List<GetAllNursesResponseModel> nurses = new List<GetAllNursesResponseModel>();
+    [Parameter]
+    public int Id { get; set; }
+    List<double> SelectedNodeIndex = new List<double>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Status/GetByTypeId?id={3}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        statusList = (JsonConvert.DeserializeObject<Response<List<Status>>>(response)).Data;
+
+        var serviceRequestResponseMessage = await Http.GetAsync(wsp.Path + "ServiceList");
+        var serviceRequestResponse = serviceRequestResponseMessage.Content.ReadAsStringAsync().Result;
+        serviceList = (JsonConvert.DeserializeObject<Response<List<ServiceList>>>(serviceRequestResponse)).Data;
+
+        var stateResponseMessage = await Http.GetAsync(wsp.Path + "State");
+        var stateResponse = stateResponseMessage.Content.ReadAsStringAsync().Result;
+        stateList = (JsonConvert.DeserializeObject<Response<List<State>>>(stateResponse)).Data;
+
+        var responseJobTitle = await Http.GetAsync(wsp.Path + "JobTitle/GetAll");
+        var responseData = responseJobTitle.Content.ReadAsStringAsync().Result;
+        jobTitleList = (JsonConvert.DeserializeObject<Response<List<JobTitle>>>(responseData)).Data;
+
+        var responseNursesMessage = await Http.GetAsync(wsp.Path + "Nurses/GetAllNursesIds");
+        var nursesResponse = responseNursesMessage.Content.ReadAsStringAsync().Result;
+        nurses = (JsonConvert.DeserializeObject<Response<List<GetAllNursesResponseModel>>>(nursesResponse)).Data;
+
+        if (Id != 0)
+        {
+            var jobResponseMessage = await Http.GetAsync(wsp.Path + "Job/GetServiceRequestById?jobId=" + Id);
+            var jobResponse = jobResponseMessage.Content.ReadAsStringAsync().Result;
+            var result = (JsonConvert.DeserializeObject<Response<CreateServiceRequestViewModel>>(jobResponse)).Data;
+            if (result == null)
+            {
+                serviceRequest = new CreateServiceRequestViewModel();
+            }
+            else
+            {
+                serviceRequest = result;
+                await LoadCities(serviceRequest.StateId);
+                if (!string.IsNullOrEmpty(serviceRequest.Frequency))
+                {
+                    var days = serviceRequest.Frequency.Split(",");
+                    foreach (var day in days)
+                    {
+                        switch (day)
+                        {
+                            case "Sunday":
+                                serviceRequest.Days.Sunday = true;
+                                break;
+                            case "Monday":
+                                serviceRequest.Days.Monday = true;
+                                break;
+                            case "Tuesday":
+                                serviceRequest.Days.Tuesday = true;
+                                break;
+                            case "Wednesday":
+                                serviceRequest.Days.Wednesday = true;
+                                break;
+                            case "Thursday":
+                                serviceRequest.Days.Thursday = true;
+                                break;
+                            case "Friday":
+                                serviceRequest.Days.Friday = true;
+                                break;
+                            case "Saturday":
+                                serviceRequest.Days.Saturday = true;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            StateHasChanged();
+        }
+        isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+        }
+    }
+
+    protected async Task OnStateChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, State> args)
+    {
+        serviceRequest.StateId = args.ItemData.StateId;
+        if (serviceRequest.StateId == 0)
+        {
+            cityList.Clear();
+        }
+        else
+        {
+            await LoadCities(serviceRequest.StateId);
+        }
+    }
+
+    protected async Task OnCityChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, City> args)
+    {
+        if (args.ItemData != null)
+        {
+            serviceRequest.CityId = args.ItemData.CityId;
+            var responseMessage = await Http.GetAsync(wsp.Path + $"City/GetById?id={serviceRequest.CityId}");
+            var response = responseMessage.Content.ReadAsStringAsync().Result;
+            City city = (JsonConvert.DeserializeObject<Response<City>>(response)).Data;
+            serviceRequest.PostalCode = city.ZipCode.ToString();
+        }
+    }
+
+    protected async Task LoadCities(int stateId)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"City/GetByStateId?stateId={stateId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        cityList = (JsonConvert.DeserializeObject<Response<List<City>>>(response)).Data;
+    }
+
+    public void GoToPatientInfoTab()
+    {
+        SelectedPage = 1;
+        StateHasChanged();
+    }
+
+    public void GoToSRInfoTab()
+    {
+        SelectedPage = 0;
+        StateHasChanged();
+    }
+
+    public void GoToTasksTab()
+    {
+        SelectedPage = 2;
+        StateHasChanged();
+    }
+
+    public async Task CreateSR()
+    {
+        try
+        {
+            if (DateTime.Compare((DateTime)serviceRequest.Date, (DateTime)serviceRequest.EndDate) > 0)
+            {
+                SelectedPage = 0;
+                return;
+            }
+
+            var frequencyList = GetFrequencyValue.GetFrequency(serviceRequest.Days);
+            if (!frequencyList.ToList().Any(x => x.Value == true))
+            {
+                freqMsg = true;
+                SelectedPage = 0;
+                return;
+            }
+
+            var selectedTasks = await taskGrid.GetSelectedRecords();
+            if (selectedTasks.Count == 0)
+            {
+                toastService.ShowWarning("Please select at least one task");
+                return;
+            }
+            isLoading = true;
+            serviceRequest.EmployerId = agencyData.UserDetails.UserId;
+            serviceRequest.Date = serviceRequest.Date.Value.Date + serviceRequest.Time.Value.TimeOfDay;
+            serviceRequest.EndDate = serviceRequest.EndDate.Value.Date + serviceRequest.EndTime.Value.TimeOfDay;
+            string frequencyValue = string.Empty;
+            foreach (var frequency in frequencyList)
+            {
+                if (frequency.Value)
+                {
+                    frequencyValue += frequency.Day + ",";
+                }
+            }
+            var lastComma = frequencyValue.LastIndexOf(',');
+            frequencyValue = frequencyValue.Remove(lastComma, 1);
+            serviceRequest.Frequency = frequencyValue;
+
+            //foreach (var task in selectedTasks)
+            //{
+            //    serviceRequest.TaskListTemplates.Add(new TaskListAddTemplateViewModel
+            //    {
+            //        TaskName = task.TaskName,
+            //        TaskDescription = task.TaskListCategory.Category
+            //    });
+            //}
+            HttpResponseMessage responseMessage = new HttpResponseMessage();
+            if (serviceRequest.JobId == 0)
+            {
+                responseMessage = await Http.PostAsJsonAsync(wsp.Path + "Job/CreateServiceRequest", serviceRequest);
+            }
+            else
+            {
+                responseMessage = await Http.PostAsJsonAsync(wsp.Path + "Job/UpdateServiceRequest", serviceRequest);
+            }
+            var response = responseMessage.Content.ReadAsStringAsync().Result;
+            var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+            if (result.Status == "Success")
+            {
+                toastService.ShowSuccess(result.Message);
+                navigation.NavigateTo("agency/dashboard");
+            }
+            else
+            {
+                toastService.ShowError(result.Message);
+            }
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError(ex.Message);
+            isLoading = false;
+        }
+        StateHasChanged();
+    }
+
+    public void CheckValidations(EditContext editContext)
+    {
+        if (serviceRequest.ServiceListId == 0 || serviceRequest.Date == null || serviceRequest.Time == null || serviceRequest.EndDate == null || serviceRequest.EndTime == null || serviceRequest.AgencyRate == null || serviceRequest.CareGiverRate == null || (serviceRequest.IsInitialAssesstmentRequired && serviceRequest.ReAssessmentFrequency == null) || (serviceRequest.IsSupervisoryVisitsRequired && serviceRequest.ReVisitFrequency == null))
+        {
+            SelectedPage = 0;
+        }
+        else
+        {
+            SelectedPage = 1;
+        }
+    }
+
+    public void OnAssessmentChange()
+    {
+        if (!serviceRequest.IsInitialAssesstmentRequired)
+        {
+            serviceRequest.ReAssessmentFrequency = null;
+            serviceRequest.InitialAssessmentAssignedNurse = null;
+        }
+        StateHasChanged();
+    }
+
+    public void OnSupervisoryVisitsChange()
+    {
+        if (!serviceRequest.IsSupervisoryVisitsRequired)
+        {
+            serviceRequest.ReVisitFrequency = null;
+            serviceRequest.SupervisoryVisitAssignedNurse = null;
+        }
+        StateHasChanged();
+    }
+
+    public void OnDischargeSummaryChange()
+    {
+        if (!serviceRequest.IsDischargeSummaryRequired)
+        {
+            serviceRequest.DischargeSummaryAssignedNurse = null;
+        }
+        StateHasChanged();
+    }
+
+    protected void onCheckBoxValueChange(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (Convert.ToBoolean(args.Value))
+        {
+            serviceRequest.ResponsiblePartyName = (serviceRequest.FirstName + " " + serviceRequest.LastName);
+            serviceRequest.ResponsiblePartyEmail = null;
+            serviceRequest.ResponsiblePartyTelephoneNumber = null;
+            isButtonDisable = true;
+        }
+        else
+        {
+            serviceRequest.ResponsiblePartyName = null;
+            serviceRequest.ResponsiblePartyEmail = null;
+            serviceRequest.ResponsiblePartyTelephoneNumber = null;
+            isButtonDisable = false;
+        }
+    }
+
+    public async Task OnDataBound(object args)
+    {
+        await this.taskGrid.SelectRows(SelectedNodeIndex.ToArray());
+        SelectedNodeIndex = new List<double>();
+    }
+
+    public async Task OnRowDataBound(RowDataBoundEventArgs<TaskListTemplate> args)
+    {
+        if (serviceRequest.TaskListTemplates.Count > 0)
+        {
+            var dataSource = await taskGrid.GetCurrentViewRecords();
+            var index = 0;
+            foreach (var data in dataSource)
+            {
+                foreach (var task in serviceRequest.TaskListTemplates)
+                {
+                    if (task.TaskName == data.TaskName)
+                    {
+                        SelectedNodeIndex.Add(index);
+                        break;
+                    }
+                }
+                index++;
+            }
+        }
+    }
+
+    public void OnRowSelected(RowSelectEventArgs<TaskListTemplate> args)
+    {
+        if (!serviceRequest.TaskListTemplates.Any(x => x.TaskName == args.Data.TaskName))
+        {
+            serviceRequest.TaskListTemplates.Add(new TaskListAddTemplateViewModel
+            {
+                TaskName = args.Data.TaskName,
+                TaskDescription = args.Data.TaskListCategory.Category
+            });
+        }
+    }
+
+    public void OnRowDeSelected(RowDeselectEventArgs<TaskListTemplate> args)
+    {
+        var task = serviceRequest.TaskListTemplates.FirstOrDefault(x => x.TaskName == args.Data.TaskName);
+        if (task != null)
+        {
+            serviceRequest.TaskListTemplates.Remove(task);
+        }
+    }
+}

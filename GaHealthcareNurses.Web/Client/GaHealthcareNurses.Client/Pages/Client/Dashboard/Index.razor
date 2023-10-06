@@ -1,0 +1,225 @@
+﻿@layout GaHealthcareNurses.Client.Shared.ClientLayout
+@page "/client/dashboard";
+@inject HttpClient Http;
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager navigation
+@using Newtonsoft.Json;
+@using GaHealthcareNurses.Entity.ViewModels
+@using GaHealthcareNurses.Entity.Models
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Inputs;
+@using GaHealthcareNurses.Client.Common_Components
+@using GaHealthcareNurses.Entity.Common
+@inject IJSRuntime jsRunTime
+@inject IToastService toastService
+
+
+<div class="top-entry-area client_dashboard">
+    <div class="row dahboard_box">
+        <div id="tab_content" class="tab-content tab-content-info">
+            <div id="tab1" class="tab-pane fade active in">
+                <ServiceRequestGrid DataSource="serviceRequests" UserRole="@UserRoles.Client.ToString()" SelectRating="OpenRatingModal"></ServiceRequestGrid>
+                @*<SfGrid DataSource="jobs" AllowPaging="true" Toolbar="@(new List<string>() { "Search" })">
+                    <GridColumns>
+                        <GridColumn Field="CareRecipient.ServiceList.Name" HeaderText="Service"></GridColumn>
+                        <GridColumn HeaderText="Start Date">
+                            <Template>
+                                @{
+                                    var job = (context as Job);
+                                    <span>@job.CareRecipient.WhenToStart</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn HeaderText="End Date">
+                            <Template>
+                                @{
+                                    var job = (context as Job);
+                                    <span>@job.CareRecipient.EndDate</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn HeaderText="Patient Name">
+                            <Template>
+                                @{
+                                    var job = (context as Job);
+                                    <span>@(job.CareRecipient.FirstName + " " + job.CareRecipient.LastName)</span>
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn AutoFit="true" Field="JobTitle.Title" HeaderText="Request"></GridColumn>
+                        <GridColumn HeaderText="Status" AutoFit="true">
+                            <Template>
+                                @{
+                                    var job = (context as Job);
+                                    if (job.JobApplies != null && job.JobApplies.Count > 0 && job.JobApplies.FirstOrDefault(x => x.StatusId == 7) != null)
+                                    {
+                                        <span>Completed</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Pending</span>
+                                    }
+                                }
+                            </Template>
+                        </GridColumn>
+                        <GridColumn HeaderText="Select Rating" AutoFit="true">
+                            <Template>
+                                @{
+                                    var job = (context as Job);
+                                    if (job.JobApplies != null && job.JobApplies.Count > 0 && job.JobApplies.FirstOrDefault(x => x.StatusId == 7) != null)
+                                    {
+                                        <SfButton @onclick="() => OpenRatingModal(job)">Rating</SfButton>
+                                    }
+                                    else
+                                    {
+                                        <SfButton Disabled="true">Rating</SfButton>
+                                    }
+                                }
+                            </Template>
+                        </GridColumn>
+                    </GridColumns>
+                </SfGrid>*@
+            </div>
+        </div>
+    </div>
+</div>
+<SfDialog IsModal="true" Width="400px" Visible="IsRatingModalOpen">
+    <DialogEvents Closed="@DialogClose"></DialogEvents>
+    <DialogPositionData X="center" Y="center"></DialogPositionData>
+    <DialogTemplates>
+        <Header>
+            <h3>Rating</h3>
+        </Header>
+        <Content>
+            @if (selectedJob.ClientRatingToNurse == null)
+            {
+                <div style="margin-bottom:10px;">
+                    <label style="margin:0;">Nurse</label>
+                    <SfSlider EnablePersistence="true" @bind-Value="clientRatingViewModel.ClientRatingToNurse" Min="@Min" Max="@Max" Step="@Step" Type="@SliderType.MinRange" TValue="double?">
+                        <SliderTicks Placement="@Placement.After" LargeStep="1" SmallStep=".5" ShowSmallTicks="true"></SliderTicks>
+                        @*<SliderTooltip IsVisible="CloseToolTip" Placement="@TooltipPlacement.Before"></SliderTooltip>*@
+                    </SfSlider>
+                </div>
+            }
+            else
+            {
+                <div style="margin-bottom:15px;">
+                    <h5>Nurse : @NurseName </h5>
+                    <span>@selectedJob.ClientRatingToNurse <span style="color: #bd8347;">Star</span> </span>
+                </div>
+
+            }
+            <br />
+
+            @if (selectedJob.ClientRatingToAgency == null)
+            {
+                <div style="margin-bottom:10px;">
+                    <label style="margin:0;">Agency</label>
+                    <SfSlider EnablePersistence="true" @bind-Value="clientRatingViewModel.ClientRatingToAgency" Min="@Min" Max="@Max" Step="@Step" Type="@SliderType.MinRange" TValue="double?">
+                        <SliderTicks Placement="@Placement.After" LargeStep="1" SmallStep=".5" ShowSmallTicks="true"></SliderTicks>
+                        @*<SliderTooltip IsVisible="CloseToolTip" Placement="@TooltipPlacement.Before"></SliderTooltip>*@
+                    </SfSlider>
+                </div>
+            }
+            else
+            {
+                <div class="">
+                    <h5>Agency : @Employer </h5>
+                    <span>@selectedJob.ClientRatingToAgency <span style="color: #bd8347;">Star </span> </span>
+                </div>
+
+            }
+        </Content>
+        <FooterTemplate>
+            @if (selectedJob.ClientRatingToAgency == null || selectedJob.ClientRatingToNurse == null)
+            {
+                <SfButton OnClick="ClientRatingSubmit">Save</SfButton>
+            }
+            <SfButton OnClick="DialogClose">Cancel</SfButton>
+        </FooterTemplate>
+    </DialogTemplates>
+    <DialogAnimationSettings Effect="@DialogEffect.Zoom"></DialogAnimationSettings>
+</SfDialog>
+
+@code {
+
+    public ClientRatingViewModel clientRatingViewModel = new ClientRatingViewModel();
+    public GetServiceRequestListResponseModel selectedJob = new GetServiceRequestListResponseModel();
+    public bool CloseToolTip { get; set; }
+    public string Employer { get; set; }
+    public string NurseName { get; set; }
+    LoginViewModel<UserDetails> clientData = new LoginViewModel<UserDetails>();
+    List<GetServiceRequestListResponseModel> serviceRequests = new List<GetServiceRequestListResponseModel>();
+    bool IsRatingModalOpen = false;
+    double Step = 0.5;
+    double Min = 0;
+    double Max = 5;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            clientData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("clientData");
+            if (clientData == null)
+            {
+                navigation.NavigateTo("client/sign-in");
+            }
+            else
+            {
+                await GetJobs();
+            }
+        }
+    }
+
+    public async Task GetJobs()
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Job/GetJobsByClientId?clientId={clientData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        serviceRequests = (JsonConvert.DeserializeObject<Response<List<GetServiceRequestListResponseModel>>>(response)).Data.OrderByDescending(x => x.JobId).ToList();
+        StateHasChanged();
+    }
+
+    public async Task DialogClose()
+    {
+        IsRatingModalOpen = false;
+        CloseToolTip = false;
+        await Task.Delay(1000);
+        clientRatingViewModel = new ClientRatingViewModel();
+    }
+
+    public void OpenRatingModal(GetServiceRequestListResponseModel model)
+    {
+        selectedJob = model;
+        clientRatingViewModel.JobId = model.JobId;
+        Employer = model.Agency;
+        NurseName = model.CareGiver;
+        clientRatingViewModel.ClientRatingToNurse = model.ClientRatingToNurse;
+        clientRatingViewModel.ClientRatingToAgency = model.ClientRatingToAgency;
+        CloseToolTip = true;
+        IsRatingModalOpen = true;
+        StateHasChanged();
+    }
+
+    public async Task ClientRatingSubmit()
+    {
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "Job/ClientRating", clientRatingViewModel);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await GetJobs();
+            DialogClose();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        StateHasChanged();
+    }
+
+}

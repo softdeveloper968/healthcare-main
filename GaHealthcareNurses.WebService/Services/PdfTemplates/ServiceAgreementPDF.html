@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;500;600;700&display=swap"
+          rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .Service {
+            padding: 20px 5px;
+            max-width: 770px;
+            margin: 0 auto;
+        }
+
+        td {
+            font-size: 0.8rem;
+            padding: 10px 2px;
+        }
+
+        .input-box {
+            width: 177px;
+            height: 43px;
+            border: 1px solid silver;
+            padding: 2px 6px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #666;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+            label input[type="checkbox"] {
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+        p {
+            font-size: 14px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="Service">
+        <table style="width:100%;border: 0;border-spacing: 0; margin-top:25px;">
+            <tbody>
+                <tr>
+                    <td colspan="4">
+                        <label class="Cname">Client Name : [[ClientName]]</label>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="width:50%;">
+                        <label style="margin-right:5px;">Referred By:</label>
+                        <input type="text" class="input-box" value="[[ReferredBy]]">
+
+                    </td>
+                    <td colspan="2" style="width:50%;">
+                        <label style="margin-right:5px;">Referral Date:</label>
+                        <input type="text" class="input-box" value="[[ReferredDate]]">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2" style="width:50%;">
+                        <label>Initial Date of Contact:</label>
+                        <input type="text" class="input-box" value="[[InitialDateOfContact]]">
+                    </td>
+                    <td colspan="2" style="width:50%;">
+                        <label>Start Of Care: <span style="padding-left:5px;font-weight: 400;">[[StartDate]]</span></label>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="4">
+                        <label>Description Of Service Needed By The Client: <span style="padding-left:5px;font-weight: 400;">[[DescriptionByClient]]</span></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <label>Service To Be Provided:<span style="padding-left:5px;font-weight: 400;">[[ServiceProvide]]</span></label>
+                        <label>Total Hours:<span style="padding-left:5px;font-weight: 400;">[[TotalHours]]</span></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label>Frequency:<span style="padding-left:5px;font-weight: 400;">[[Frequency]]</span></label>
+                    </td>
+                    <td>
+                        <label style="width:100%;display: block;padding-bottom: 3px;">Start Date:<span style="padding-left:5px;font-weight: 400;">[[StartDate]]</span></label>
+                        <label style="width:100%;display: block;padding-bottom: 3px;">End Date:<span style="padding-left:5px;font-weight: 400;">[[EndDate]]</span></label>
+                    </td>
+                    <td>
+                        <label style="width:100%;display: block;padding-bottom: 3px;">Start Time:<span style="padding-left:5px;font-weight: 400;">[[StartDate]]</span></label>
+                        <label style="width:100%;display: block;padding-bottom: 3px;">End time:<span style="padding-left:5px;font-weight: 400;">[[EndDate]]</span></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <label style="width:100%;display: block;padding-bottom: 4px;">Services are paid by reimbursemnt to the provider through(Check all that apply):</label>
+
+                        <label style="padding-right:8px;"><input style="margin: 0 3px 0 0" type="checkbox" [[IsMedicaidChecked]] />Medicated</label>
+
+                        <label style="padding-right:8px;"><input style="margin: 0 3px 0 0" type="checkbox" [[IsInsuranceChecked]] />Insurance</label>
+
+                        <label><input style="margin: 0 3px 0 0" type="checkbox" [[IsPrivatePayChecked]] />Private Pay</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <label>Charges For Services(hourly rate): <span style="padding-left:5px;font-weight: 400;">[[ChargesOfService]]</span></label>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label style="margin-right: 6px;">to be billed</label>
+                        <input style="width: 100px;" type="text" class="input-box" value="[[DateBilledOn]]">
+                    </td>
+                    <td colspan="2">
+                        <label style="margin-right: 6px;">and due by</label>
+                        <input value="[[DateDueOn]]" style="width: 100px;" type="text" class="input-box">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <label>Client agrees and covenants thast for a period of</label>
+                        <input type="number" class="input-box" value="[[NoOfMonthAgreed]]" style="width: 100px; text-align:center;" />
+                        <label>months following the terminations of this Agreement, whether such termination is voluntary or involuntry</label>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <input type="text" class="input-box" value="[[Condition1]]" style="width:100%;">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <label style="padding-bottom:5px;width: 100%;display:block;">If Undersigned or Client wishes to interrupt or terminate the Services provided under this agreement for any reason,Undersigned to give Provider at least</label>
+                        <label style="padding-bottom:5px;width: 100%;display:block;"><input type="number" class="input-box" value="[[LeastNoOfDays1]]" style="width: 70px;text-align: center;margin-right:5px">days advance notice,or if</label>
+
+                        <label style="padding-bottom:5px;width: 100%;display:block;"><input type="number" class="input-box" value="[[LeastNoOfDays2]]" style="width: 70px;text-align: center;margin-right:5px" />days advance notice is not possible under the circumtances,to provide notice as soon as possible.</label>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <input type="text" class="input-box" value="[[Condition2]]" style="width: 100%;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <label style="padding-right:8px;"><input style="margin: 0 3px 0 0" type="checkbox" [[CanAccessPersonalFundsChecked]]>Authorization for access to client's personal funds for management</label>
+
+                        <label style="padding-right:8px;"><input style="margin: 0 3px 0 0" type="checkbox" [[CanAccessPersonalVichleChecked]]>Authorization for access to client's personal vichle</label>
+                        <label><input style="margin: 0 3px 0 0" type="checkbox" [[HasReceivedBillOfRightsChecked]]>Private Pay</label>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="4">
+                        <p>For information, questions,or complaints about services provided by Test please call 575-668-7687</p>
+                        <p>In the event there is a complaints or problem that we have been made aware of that cannot be resolved,you may contact Healthcare Facility Regulations Division,</p>
+                        <p>Health Care Section at 404-657-5850 or for information call 404-657-1509.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label style="padding:0 6px 5px 0;"><input style="margin: 0 3px 0 0" type="checkbox" [[IsSignedByClientChecked]]>Signed by Client/Representative</label>
+                        <input type="text" class="input-box" value="[[SignedByClient]]" style="border: 1px solid #444 !important; color: #555 !important; ">
+                    </td>
+                    <td colspan="2">
+                        <label style="padding:0 6px 5px 0;"><input style="margin: 0 3px 0 0" type="checkbox" [[IsSignedByAgencyChecked]]>Signed by Agency/ Representative</label>
+                        <input type="text" class="input-box" value="[[SignedByAgency]]" style="border:1px solid silver" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+</html>

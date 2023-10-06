@@ -1,0 +1,64 @@
+﻿@page "/agency/discharge-summaries"
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+@using GaHealthcareNurses.Entity.ViewModels
+@using GaHealthcareNurses.Entity.Models
+@using Microsoft.JSInterop
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@using Syncfusion.Blazor.Spinner
+@using GaHealthcareNurses.Client.Common_Components
+
+<div class="top-entry-area client_dashboard">
+    <div class="row dahboard_box">
+        <div id="tab_content" class="tab-content tab-content-info">
+            <div id="tab1" class="tab-pane fade active in">
+                <DischargeSummaryGrid OnDischargeSummaryDeleted="DischargeSummaryDeleted" DataSource="@dischargeSummaries" UserRole="@agencyData.Role" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code{
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    List<GetDischargeSummaryListResponseModel> dischargeSummaries = new List<GetDischargeSummaryListResponseModel>();
+    bool isLoading = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData == null)
+            {
+                navigation.NavigateTo("agency/sign-in");
+            }
+            else
+            {
+                await GetDischargeSummaries();
+            }
+        }
+    }
+
+    public async Task GetDischargeSummaries()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"DischargeSummary/GetDischargeSummariesByEmployerId?employerId={agencyData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        dischargeSummaries = (JsonConvert.DeserializeObject<Response<List<GetDischargeSummaryListResponseModel>>>(response)).Data.OrderByDescending(x => x.Id).ToList();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task DischargeSummaryDeleted()
+    {
+        await GetDischargeSummaries();
+    }
+}

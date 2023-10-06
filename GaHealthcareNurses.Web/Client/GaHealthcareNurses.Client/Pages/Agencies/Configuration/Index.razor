@@ -1,0 +1,142 @@
+﻿@page "/agency/configuration"
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@using Syncfusion.Blazor.Inputs
+@using GaHealthcareNurses.Entity.ViewModels
+@using GaHealthcareNurses.Entity.Models
+@using Syncfusion.Blazor.Buttons
+@using Microsoft.JSInterop
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+@using Syncfusion.Blazor.Spinner
+@using Newtonsoft.Json;
+
+<EditForm Model="@model" OnValidSubmit="SaveConfiguration">
+    <div>
+        <DataAnnotationsValidator />
+        <div class="skilled_nurse_sec confrigation">
+            <div><label>Notifications</label></div>
+            <hr class="hr" />
+            <div class="row gap_10">
+                <div class="col-md-6">
+                    <fieldset>
+                        <legend>Expiring Documents</legend>
+                        <div class="config_sec gap_10 mt-0">
+                            <h5>Start sending out notifications</h5>
+                            <SfNumericTextBox Min=" 0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="model.DaysBeforeDocExpires" />
+                            <h5>Days before expiry.</h5>
+                        </div>
+                        <ValidationMessage For="@(() => model.DaysBeforeDocExpires)" />
+                        <div class="config_sec gap_10">
+                            <h5>Frequency:</h5>
+                            <h5>Every</h5>
+                            <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="model.HoursFrequencyForDocs" />
+                            <h5>hour(s)</h5>
+                        </div>
+                        <ValidationMessage For="@(() => model.HoursFrequencyForDocs)" />
+                        <div class="config_sec gap_10">
+                            <h5>Notify:</h5>
+                            <SfCheckBox Label="Mobile App" LabelPosition="LabelPosition.After" @bind-Checked="@model.NotifyDocExpByApp"></SfCheckBox>
+                            <SfCheckBox Label="Text/SMS" LabelPosition="LabelPosition.After" @bind-Checked="@model.NotifyDocExpByText"></SfCheckBox>
+                            <SfCheckBox Label="Email" LabelPosition="LabelPosition.After" @bind-Checked="@model.NotifyDocExpByEmail"></SfCheckBox>
+                        </div>
+                        @if (!model.NotifyDocExpByApp && !model.NotifyDocExpByText && !model.NotifyDocExpByEmail)
+                        {
+                            <p class="validation-message">*Please select atleast one option</p>
+                        }
+                    </fieldset>
+                </div>
+                <div class="col-md-6">
+                    <fieldset>
+                        <legend>Clock In/Clock Out</legend>
+                        <div class="config_sec gap_10 mt-0">
+                            <h5>Start sending out notification</h5>
+                            <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="model.MinutesBeforeClockIn" />
+                            <h5>minutes  before Clock In</h5>
+                        </div>
+                        <ValidationMessage For="@(() => model.MinutesBeforeClockIn)" />
+                        <div class="config_sec gap_10">
+                            <h5>Frequency:</h5>
+                            <h5>Repeat every</h5>
+                            <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="model.MinutesFreqToRepeat" />
+                            <h5>mintues</h5>
+                        </div>
+                        <ValidationMessage For="@(() => model.MinutesFreqToRepeat)" />
+                        <div class="config_sec gap_10">
+                            <h5>Sending out notifications</h5>
+                            <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="model.MinutesAfterShiftEnd" />
+                            <h5>minutes(s) after shift end</h5>
+                        </div>
+                        <ValidationMessage For="@(() => model.MinutesAfterShiftEnd)" />
+                    </fieldset>
+                </div>
+            </div>
+            <div class="text-right">
+                <button type="submit" class="create_account btn-theme border ">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    NotifyConfigurationRequestModel model = new NotifyConfigurationRequestModel();
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    bool isLoading = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData == null)
+            {
+                navigation.NavigateTo("agency/sign-in");
+            }
+            else
+            {
+                await GetConfiguration();
+            }
+        }
+    }
+
+    public async Task GetConfiguration()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"NotifyConfiguration/GetConfigurationByEmployerId?employerId={agencyData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        model = (JsonConvert.DeserializeObject<Response<NotifyConfigurationRequestModel>>(response)).Data ?? new NotifyConfigurationRequestModel();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task SaveConfiguration()
+    {
+        @if (!model.NotifyDocExpByApp && !model.NotifyDocExpByText && !model.NotifyDocExpByEmail)
+            return;
+
+        isLoading = true;
+        model.EmployerId = agencyData.UserDetails.UserId;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "NotifyConfiguration/AddUpdateConfiguration", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+
+    }
+}

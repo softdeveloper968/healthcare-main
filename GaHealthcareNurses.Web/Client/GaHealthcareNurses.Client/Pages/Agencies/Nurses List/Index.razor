@@ -1,0 +1,375 @@
+﻿@page "/agency/nurses-list";
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+@using GaHealthcareNurses.Entity.Models
+@using GaHealthcareNurses.Entity.ViewModels
+@using Newtonsoft.Json
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@using Syncfusion.Blazor.Navigations
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IToastService toastService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager navigation
+
+<div class="top-entry-area client_dashboard">
+    <div class="row dahboard_box">
+        <div id="tab_content" class="tab-content tab-content-info">
+            <div id="nursesList" class="tab-pane fade active in">
+                <SfGrid DataSource="nurses" AllowPaging="true" AllowSorting="true" Toolbar="@(new List<string>() { "Search" })">
+                    <GridTemplates>
+                        <DetailTemplate>
+                            @{
+                                var nurse = (context as Nurse);
+
+                            }
+                            <div style="padding:20px">
+                                <SfTab>
+                                    <TabItems>
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Personal Info"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+                                                    @if (nurse.ProfliePicture != null)
+                                                    {
+                                                        <div style="float:left;padding:45px;padding-top:70px"><img class="photo" src="@UriHelper.ToAbsoluteUri(nurse.ProfliePicture)" alt="@nurse.FirstName" /></div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div style="float:left;padding:45px;padding-top:70px"><img class="photo" src="assets/img/DefaultAgencyLogo.png" alt="@nurse.FirstName" /></div>
+                                                    }
+
+                                                    <div style="padding-top: 42px;">
+                                                        <div style="width:265px;float:left;padding:40px">
+                                                            <span><b>First Name:</b></span> <span class="content">@nurse.FirstName</span><br />
+                                                            <span><b>Last Name:</b></span> <span class="content">@nurse.LastName</span><br />
+                                                            <span><b>Middle Initial:</b></span> <span class="content">@nurse.MiddleInitial</span><br />
+                                                            @*<span><b>SSN:</b></span> <span class="content">@nurse.SocialSecurityNo</span><br />*@
+                                                            <span><b>Date of Birth:</b></span> <span class="content">@Convert.ToDateTime(@nurse.DateOfBirth).ToShortDateString()</span><br />
+                                                            <span><b>Email:</b></span> <span class="content">@nurse.EmailAddress</span><br />
+                                                            <span><b>Telephone No:</b></span> <span class="content">@nurse.TelephoneNo</span><br />
+                                                            <span><b>Address:</b></span> <span class="content">@nurse.AddressLine1</span><br />
+                                                            <span><b>City:</b></span> <span class="content">@nurse.City.Name</span><br />
+                                                            <span><b>Zip Code:</b></span> <span class="content">@nurse.City.ZipCode</span><br />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Basic Info"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="padding-top:30px">
+
+                                                        <div style="padding-top:10px;">
+                                                            <table class="table">
+                                                                <tr>
+                                                                    <th>Best time to contact you</th>
+                                                                    <td>@nurse.ContactTime</td>
+                                                                </tr>
+
+                                                                <tr>
+                                                                    <th>May be contact your present employer?</th>
+                                                                    <td>@nurse.ContactPresentEmployer</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Are you prevented from lawfully becoming employed in this country?</th>
+                                                                    <td>@nurse.LawfullyBecomingEmployed</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Date available to work</th>
+                                                                    <td>@nurse.DateAvailableToWork</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Hours per week to work</th>
+                                                                    <td>@nurse.HoursPerWeek</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Are you avaiable to work:</th>
+                                                                    <td>@nurse.AvailableToWork</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Do you have your own transportation?</th>
+                                                                    <td>@nurse.Trasnportation</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Have you ever been excluded or been determined ineligible for participation in medicare?</th>
+                                                                    <td>@nurse.IneligibleForParticipation</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Explanation</th>
+                                                                    <td>@nurse.ReasonForIneligible</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Have you ever been convicted of any criminal activity?</th>
+                                                                    <td>@nurse.CriminalActivity</td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Work Experience"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="padding-top:30px">
+
+                                                        <div style="padding-top:10px;">
+                                                            @foreach (var workExperience in nurse.WorkExperiences)
+                                                            {
+                                                                <table class="table">
+                                                                    <tr>
+                                                                        <th>Employer Name</th>
+                                                                        <td>@workExperience.Employer</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Address</th>
+                                                                        <td>@workExperience.Address</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Telephone No</th>
+                                                                        <td>@workExperience.PhoneNo</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Starting/Present Job Title</th>
+                                                                        <td>@workExperience.JobTitle</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Employed From</th>
+                                                                        <td>@Convert.ToDateTime(workExperience.StartDate).ToShortDateString()</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Employed To</th>
+                                                                        <td>@Convert.ToDateTime(workExperience.EndDate).ToShortDateString()</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Starting Hourly Rates</th>
+                                                                        <td>@workExperience.HourlyRate</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Final Hourly Rates</th>
+                                                                        <td>@workExperience.FinalHourlyRate</td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <th>Supervisor Name</th>
+                                                                        <td>@workExperience.NameOfSupervisor</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Reason for leaving</th>
+                                                                        <td>@workExperience.ReasonForLeaving</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>May we contact your employer?</th>
+                                                                        <td>@workExperience.IsContactAllowed</td>
+                                                                    </tr>
+
+                                                                </table>
+                                                                <hr />
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Education"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="padding-top:30px">
+
+                                                        <div style="padding-top:10px;">
+                                                            @foreach (var education in nurse.Educations)
+                                                            {
+                                                                <table class="table">
+                                                                    <tr>
+                                                                        <th>Complete Address</th>
+                                                                        <td>@education.CompleteAddress</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Attended From</th>
+                                                                        <td>@Convert.ToDateTime(education.AttendedFrom).ToShortDateString()</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Attended To</th>
+                                                                        <td>@Convert.ToDateTime(education.AttendedTo).ToShortDateString()</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Major</th>
+                                                                        <td>@education.Major</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Type Diploma/Degree</th>
+                                                                        <td>@education.Type</td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <th>Describe any specialized training,skills and extra-curricular activities</th>
+                                                                        <td>@education.SpecializedTraining</td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <th>Other Qualifications</th>
+                                                                        <td>@education.OtherQualification</td>
+                                                                    </tr>
+                                                                </table>
+
+                                                            }
+                                                            <h3>Registration/ Certification/ License</h3>
+                                                            @foreach (var certification in nurse.Certifications)
+                                                            {
+                                                                <table class="table">
+                                                                    <tr>
+                                                                        <th>Type</th>
+                                                                        <td>@certification.CertificationType</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Number</th>
+                                                                        <td>@certification.CertificationNumber</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>State</th>
+                                                                        <td>@certification.CertificationState</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Expiration</th>
+                                                                        <td>@certification.DateOfExpiration</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Type Diploma/Degree</th>
+                                                                        <td>@certification.Type</td>
+                                                                    </tr>
+
+                                                                </table>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+
+                                        <TabItem>
+                                            <ChildContent>
+                                                <TabHeader Text="Other"></TabHeader>
+                                            </ChildContent>
+                                            <ContentTemplate>
+                                                <div style="display:inline-flex">
+
+                                                    <div style="padding-top:30px">
+
+                                                        <div style="padding-top:10px;">
+                                                            <h3>Personal/Professional References</h3>
+                                                            @foreach (var reference in nurse.References)
+                                                            {
+                                                                <table class="table">
+                                                                    <tr>
+                                                                        <th>Name</th>
+                                                                        <td>@reference.Name</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Phone Number</th>
+                                                                        <td>@reference.PhoneNo</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Occupation</th>
+                                                                        <td>@reference.Occupation</td>
+                                                                    </tr>
+                                                                </table>
+                                                            }
+                                                            <h3>Emergency Contact</h3>
+                                                            <table class="table">
+                                                                <tr>
+                                                                    <th>Name</th>
+                                                                    <td>@nurse.EmergencyContactName</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Relationship</th>
+                                                                    <td>@nurse.EmergencyContactRelationship</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Address</th>
+                                                                    <td>@nurse.EmergencyContactPhone</td>
+                                                                </tr>
+                                                            </table>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ContentTemplate>
+                                        </TabItem>
+                                    </TabItems>
+                                </SfTab>
+                            </div>
+                        </DetailTemplate>
+                    </GridTemplates>
+                    <GridColumns>
+                        <GridColumn Field="@nameof(Nurse.FirstName)" HeaderText="First Name" TextAlign="TextAlign.Left" Width="80"></GridColumn>
+                        <GridColumn Field="@nameof(Nurse.LastName)" HeaderText="Last Name" TextAlign="TextAlign.Left" Width="80"></GridColumn>
+                        <GridColumn Field="@nameof(Nurse.EmailAddress)" HeaderText="Email Address" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+                        <GridColumn Field="@nameof(Nurse.AddressLine1)" HeaderText="Address" TextAlign="TextAlign.Left" Width="140"></GridColumn>
+                        <GridColumn Field="@nameof(Nurse.CreatedDate)" HeaderText="Created Date" TextAlign="TextAlign.Left" Type="ColumnType.Date" Format="MM/dd/yyyy" Width="90"></GridColumn>
+                        <GridColumn Field="@nameof(Nurse.DateOfBirth)" HeaderText="Date of Birth" TextAlign="TextAlign.Left" Type="ColumnType.Date" Format="MM/dd/yyyy" Width="90"></GridColumn>
+                        <GridColumn HeaderText="Preferred Rate" TextAlign="TextAlign.Left" Width="100">
+                            <Template>
+                                @{
+                                    var nurse = (context as Nurse);
+                                    if (!string.IsNullOrEmpty(nurse.PreferredHourlyRate) && !string.IsNullOrEmpty(nurse.PreferredHourlyRateUpto))
+                                    {
+                                        <span>$@nurse.PreferredHourlyRate - $@nurse.PreferredHourlyRateUpto</span>
+                                    }
+                                }
+                            </Template>
+                        </GridColumn>
+                    </GridColumns>
+                </SfGrid>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    List<Nurse> nurses = new List<Nurse>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData != null)
+            {
+                await GetNursesList();
+            }
+            else
+            {
+                navigation.NavigateTo("agency/sign-in");
+            }
+        }
+    }
+
+    public async Task GetNursesList()
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Employer/GetNursesList?employerId={agencyData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        nurses = (JsonConvert.DeserializeObject<Response<List<Nurse>>>(response)).Data;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,432 @@
+﻿@layout GaHealthcareNurses.Client.Shared.SecondaryLayout
+@page "/agency";
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject HttpClient Http
+@inject IMapper _mapper
+@using GaHealthcareNurses.Entity.Models
+@using GaHealthcareNurses.Entity.ViewModels
+@using Microsoft.AspNetCore.Hosting
+@inject IWebHostEnvironment env
+@using Newtonsoft.Json;
+@inject IToastService toastService
+@inject NavigationManager navigation
+@inject IJSRuntime jsRunTime
+@using GaHealthcareNurses.Client.Helper
+@using GaHealthcareNurses.Client.Data.ViewModels
+@using System.Net.Http.Headers
+@using System.Text
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<GaHealthcareNurses.Client.Shared.TopHeader />
+
+<GaHealthcareNurses.Client.Shared.AgencyHeader />
+
+<!-- Start Breadcrumb
+============================================= -->
+<div class="breadcrumb-area shadow dark gry_lght bg-fixed text-light" style="background-image: url(assets/img/agency-banner.jpg);">
+    <div class="container">
+        <h1 data-aos="fade-left" class="agn_txt">Agencies</h1>
+        <div class="row">
+            <div class="col-md-6 item">
+                <h4 data-aos="fade-right">Do you need access to qualified nurses?</h4>
+                <h2 data-aos="fade-up">Sign up to gain access to our database of Nurses</h2>
+                @if (agencyData == null)
+                {
+                <a data-aos="fade-up" class="btn btn-theme effect btn-md" href="agency/register">Sign Up For Free</a>
+                }
+                else
+                {
+                <a data-aos="fade-up" class="btn btn-theme effect btn-md" href="agency">Sign Up For Free</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Breadcrumb -->
+<!-- Start Top Entry
+============================================= -->
+<div class="top-entry-area text-center default-padding bottom-less custm_pbot">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="site-heading text-center">
+                    <h2 data-aos="fade-up">How it  <span>works</span></h2>
+
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="item-box">
+                <!-- Single Item -->
+                <div class="col-md-4 single-item dur_anmt" data-aos="fade-right">
+                    <div class="item">
+                        <i><img src="assets/img/jobs_icon.png"></i>
+                        <h4>SERVICE REQUEST NOTIFICATION</h4>
+                        <p>
+                            Depending on your subscription level, you will get notifications and alerts as soon as a service request is made.
+                        </p>
+                    </div>
+                </div>
+                <!-- End Single Item -->
+                <!-- Single Item -->
+                <div class="col-md-4 single-item dur_anmt" data-aos="fade-up">
+                    <div class="item">
+                        <i><img src="assets/img/nurse_icon.png"></i>
+                        <h4>QUOTE FOR THE SERVICE REQUEST</h4>
+                        <p>
+                            You can send your quote to the care recipient which makes the choice on agency to use.
+                        </p>
+
+                    </div>
+                </div>
+                <!-- End Single Item -->
+                <!-- Single Item -->
+                <div class="col-md-4 single-item dur_anmt" data-aos="fade-left">
+                    <div class="item">
+                        <i><img src="assets/img/checkList_icon.png"></i>
+                        <h4>GAIN ACCESS TO MORE NURSES</h4>
+                        <p>
+                            You will have access to our database of nurses and be able to pick the nurse of your choice and negotiate the best rate.
+                        </p>
+                    </div>
+                </div>
+                <!-- End Single Item -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Top Entry -->
+<!-- Start Services
+============================================= -->
+<div class="services-area inc-icon default-padding bottom-less plan-sec">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 ">
+                <div class="site-heading text-center">
+                    <h2 data-aos="fade-up">Subscription <span>Plans</span></h2>
+
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="services-items text-center">
+                @foreach (var subscription in subscriptions)
+                {
+                <Syncfusion.Blazor.Popups.SfTooltip MouseTrail="true">
+                    <div class="col-md-4 col-sm-6 equal-height">
+                        <div class="item month_plan dur_anmt" data-aos="fade-left">
+                            <div class="info">
+                                <div>
+
+                                    <h4>
+                                        @if (subscription.SubscriptionLevel == 1)
+                                        {
+                                        <span>TIER 1</span>
+                                        <div><img src="assets/img/month_1.png" /></div>
+                                        }
+                                        else if (subscription.SubscriptionLevel == 2)
+                                        {
+                                        <span>TIER 2</span>
+                                        <div><img src="assets/img/month_6.png" /></div>
+                                        }
+                                        else
+                                        {
+                                        <div class="best-value-bx">
+                                            <h3>BEST VALUE</h3>
+                                        </div>
+                                        <span>TIER 3</span>
+                                        <div><img src="assets/img/month_12.png" /></div>
+                                        }
+                                    </h4>
+                                </div>
+                                <div>
+                                    @*<div class="overlay">
+                                            <img src="assets/img/month_1.png" />
+                                        </div>*@
+                                    <h5 class="price">$@subscription.Cost</h5>
+                                    <h6 class="plan">@subscription.Description</h6>
+                                </div>
+                                <div>
+                                    @if (subscription.SubscriptionLevel == 1)
+                                    {
+                                    <h2 class="dis_count"></h2>
+                                    <a href="https://buy.stripe.com/eVadRmb798CpahW144 " class="btn btn-theme border circle btn-md">Buy Plan</a>
+                                    <Syncfusion.Blazor.Popups.TooltipTemplates>
+                                        <Content>
+                                            <div>
+                                                <ul>
+                                                    <li>- Nurses</li>
+                                                    <li>- Newsletter/Blog</li>
+                                                    <li>- Forum Access</li>
+                                                    <li>- Private Facebook Group</li>
+                                                    <li>- Scrub Discount/Affiliate</li>
+                                                    <li>- Company Roadmap Success Strategy</li>
+                                                    <li>
+                                                        - Purchase Client Leads
+                                                        $60 per lead
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </Content>
+                                    </Syncfusion.Blazor.Popups.TooltipTemplates>
+                                    }
+                                    else if (subscription.SubscriptionLevel == 2)
+                                    {
+                                    <h2 class="dis_count">$464.04 discount</h2>
+                                    <a href="https://buy.stripe.com/cN200wcbdg4R75K6oq" class="btn btn-theme border circle btn-md">Buy Plan</a>
+                                    <Syncfusion.Blazor.Popups.TooltipTemplates>
+                                        <Content>
+                                            <div>
+                                                <ul>
+                                                    <li>- Nurses</li>
+                                                    <li>- Newsletter/Blog</li>
+                                                    <li>- Forum Access</li>
+                                                    <li>- Archives</li>
+                                                    <li>- Scrub Discount/Affiliate</li>
+                                                    <li>- Private Facebook Group</li>
+                                                    <li>- Company Roadmap Success Strategy</li>
+                                                    <li>
+                                                        - Purchase Client Leads
+                                                        $50 per lead
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </Content>
+                                    </Syncfusion.Blazor.Popups.TooltipTemplates>
+                                    }
+                                    else
+                                    {
+                                    <h2 class="dis_count">$684 discount</h2>
+                                    <a href="https://buy.stripe.com/cN27sYb798Cp0Hm8wx" class="btn btn-theme border circle btn-md">Buy Plan</a>
+                                    <Syncfusion.Blazor.Popups.TooltipTemplates>
+                                        <Content>
+                                            <div>
+                                                <ul>
+                                                    <li>- Nurses</li>
+                                                    <li>- Newsletter/Blog</li>
+                                                    <li>- Forum Access</li>
+                                                    <li>- Archives</li>
+                                                    <li>- Private Facebook Group</li>
+                                                    <li>- USCHN's Affiliate link</li>
+                                                    <li>- Business analysis/projections</li>
+                                                    <li>- Exit Strategy</li>
+                                                    <li>- monthly Improvement plans</li>
+                                                    <li>- monthly repairs</li>
+                                                    <li>- Scrub Discount/Affiliate</li>
+                                                    <li>- Company Roadmap Success Strategy</li>
+                                                    <li>
+                                                        - Purchase Client Leads
+                                                        $30 per lead
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </Content>
+                                    </Syncfusion.Blazor.Popups.TooltipTemplates>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Syncfusion.Blazor.Popups.SfTooltip>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Services -->
+
+<GaHealthcareNurses.Client.Shared.FormFooter />
+
+@code{
+
+    List<Subscription> subscriptions = new List<Subscription>();
+    public string ClientId { get; set; } = "AZFu7PrytW4Bx64e3_Ilrwf5ZRV-lfDlLaiZfve80_BQ0lk4t4iKh-K4oscqUkwN_Z4DK2MNweQWQ0Kv";
+    [Parameter]
+    public string PlanId { get; set; }
+    [Parameter]
+    public string ContainerId { get; set; } = "paypal-button-container";
+    [Parameter]
+    public string OnApproveFunctionAssembly { get; set; } = "GaHealthCareNurses.Client";
+    [Parameter]
+    public string OnApproveFunctionName { get; set; } = "OnApproved";
+    [Parameter]
+    public bool AddPlatformScript { get; set; } = true;
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    PaypalAccessTokenResponseModel paypalAccessToken = new PaypalAccessTokenResponseModel();
+    List<Order> orders = new List<Order>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + "Subscription/GetAll");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        subscriptions = (JsonConvert.DeserializeObject<Response<List<Subscription>>>(response)).Data;
+
+        agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+
+
+        var bodyContent = new List<KeyValuePair<string, string>>();
+        bodyContent.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
+
+        // create request object
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api-m.sandbox.paypal.com/v1/oauth2/token") { Content = new FormUrlEncodedContent(bodyContent) };
+
+        // add authorization header
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", "QVpGdTdQcnl0VzRCeDY0ZTNfSWxyd2Y1WlJWLWxmRGxMYWlaZnZlODBfQlEwbGs0dDRpS2gtSzRvc2NxVWt3Tl9aNERLMk1Od2VRV1EwS3Y6RU5aMWt6RFFtR3lUTzZUcDNaZGFNT3lSNWVHTVh5aGx2bWU0NWhXckkyeF9KRnBwbXBKZENfRXlzUUp1dTdIbU05eUttNHZHUndIdVdEVHg=");
+
+        // send request
+        using var httpResponse = await Http.SendAsync(request);
+
+        // convert http response data to UsersResponse object
+        response = httpResponse.Content.ReadAsStringAsync().Result;
+        paypalAccessToken = (JsonConvert.DeserializeObject<PaypalAccessTokenResponseModel>(response));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRunTime.InvokeVoidAsync("Slider");
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData != null)
+            {
+                var responseMessage = await Http.GetAsync(wsp.Path + $"Order/GetActiveOrder?id={agencyData.UserDetails.UserId}");
+                var response = responseMessage.Content.ReadAsStringAsync().Result;
+                orders = (JsonConvert.DeserializeObject<Response<List<Order>>>(response)).Data;
+            }
+        }
+        StateHasChanged();
+    }
+
+    public async Task Buy(Subscription subscriptionDetails)
+    {
+        if (agencyData == null)
+        {
+            navigation.NavigateTo("agency/sign-in");
+        }
+        else
+        {
+            SubscriberName subscriberName = new SubscriberName
+            {
+                given_name = agencyData.UserDetails.UserName
+
+            };
+
+            Subscriber subscriber = new Subscriber
+            {
+                name = subscriberName,
+                email_address = agencyData.UserDetails.Email
+            };
+
+            PaymentMethod paymentMethod = new PaymentMethod
+            {
+                payer_selected = "PAYPAL",
+                payee_preferred = "IMMEDIATE_PAYMENT_REQUIRED"
+            };
+
+
+            ApplicationContext applicationContext = new ApplicationContext
+            {
+                brand_name = "US Healthcare",
+                locale = "en-US",
+                shipping_preference = "SET_PROVIDED_ADDRESS",
+                user_action = "SUBSCRIBE_NOW",
+                payment_method = paymentMethod,
+                //return_url = "https://gahealthcareweb.azurewebsites.net/agency/thank_you",
+                //cancel_url = "https://gahealthcareweb.azurewebsites.net/agency"
+                return_url = "https://www.ushealthcarenurses.com/agency/thank_you",
+                cancel_url = "https://www.ushealthcarenurses.com/agency"
+            };
+
+            SubscriptionPostRequestViewModel subscriptionPostRequestViewModel = new SubscriptionPostRequestViewModel();
+
+            if (subscriptionDetails.SubscriptionLevel == 1)
+            {
+                subscriptionPostRequestViewModel.plan_id = "P-27T57028RV967434MMDX5SIY";
+                subscriptionPostRequestViewModel.start_time = DateTime.UtcNow.AddMinutes(5).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+                subscriptionPostRequestViewModel.subscriber = subscriber;
+                subscriptionPostRequestViewModel.application_context = applicationContext;
+            }
+            else if (subscriptionDetails.SubscriptionLevel == 2)
+            {
+                subscriptionPostRequestViewModel.plan_id = "P-3V683278MK3846227MDWW36A";
+                subscriptionPostRequestViewModel.start_time = DateTime.UtcNow.AddMinutes(5).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+                subscriptionPostRequestViewModel.subscriber = subscriber;
+                subscriptionPostRequestViewModel.application_context = applicationContext;
+            }
+            else
+            {
+                subscriptionPostRequestViewModel.plan_id = "P-9DR79209PS401535MMDWWVLQ";
+                subscriptionPostRequestViewModel.start_time = DateTime.UtcNow.AddMinutes(5).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+                subscriptionPostRequestViewModel.subscriber = subscriber;
+                subscriptionPostRequestViewModel.application_context = applicationContext;
+            }
+
+
+            var responseString = "";
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    var myContent = JsonConvert.SerializeObject(subscriptionPostRequestViewModel);
+                    var accessToken = paypalAccessToken.Access_token;
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));//ACCEPT header
+                    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                    //client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+                    HttpContent requestObj = new StringContent(myContent, Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("https://api-m.sandbox.paypal.com/v1/billing/subscriptions", requestObj);
+                    responseString = await response.Content.ReadAsStringAsync();
+                    var deserializedResponse = (JsonConvert.DeserializeObject<SubscriptionResponseViewModel>(responseString));
+
+
+                    AddSubscriptionViewModel addSubscriptionViewModel = new AddSubscriptionViewModel
+                    {
+                        SubscriptionId = deserializedResponse.Id,
+                        EmployerId = agencyData.UserDetails.UserId,
+                        PlanId = subscriptionDetails.SubscriptionId,
+                        Status = deserializedResponse.Status
+                    };
+
+                    var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "Order/AddSubscription", addSubscriptionViewModel);
+                    var result = responseMessage.Content.ReadAsStringAsync().Result;
+                    var data = (JsonConvert.DeserializeObject<Response<string>>(result));
+                    if (data.Status == "Success")
+                    {
+
+                        foreach (var link in deserializedResponse.Links)
+                        {
+                            navigation.NavigateTo(link.Href);
+                            break;
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+        }
+
+    }
+
+    protected RenderFragment RenderPaypalSdk
+    {
+        get
+        {
+            RenderFragment form = b =>
+            {
+            //<script src="https://www.paypal.com/sdk/js?client-id=Acehjsg6Q8wB2xIYyKohTjB1qToyHV_PPHqpsN3pcfS9YX2LqZD24g5nJzeZIWdGgFVQOLi0OUMjJ5Ij&vault=true" data-sdk-integration-source="button-factory"></script>
+            b.OpenElement(0, "script");
+                b.AddAttribute(0, "src", $"https://www.paypal.com/sdk/js" +
+                    $"?client-id={this.ClientId}" +
+                    $"&vault=true");
+                b.AddAttribute(0, "data-sdk-integration-source", "button-factory");
+                b.CloseElement();
+            };
+            return form;
+        }
+    }
+
+}

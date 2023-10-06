@@ -1,0 +1,29 @@
+Fully Done
+==========
+Add Compititor
+Start race
+
+In Progress
+=============
+End Race
+
+Pending
+======
+Once the race is started, clicking on the name of a competitor will mark them as completing a lap.
+Once they have completed a lap, the following statistics about them should be updated and
+displayed
+
+1. The total number of laps they have completed to that point
+2. The total time they have taken to that point (presented in mm:ss.sss format, where
+mm is minutes, ss is seconds, and sss is milliseconds)
+3. The average time for their laps, this is total time divided by lap count, so for example
+if they have taken 1 minute to complete 3 laps, their average time is 20 seconds, which
+should be shown as 0:20.000
+4. The time taken for their last lap, again presented in mm:ss.sss format
+
+
+There should be no limit on the number of laps that competitors complete. Once the race has
+finished, clicking End Race should display the following statistics below the race controls:
+1. The name of the competitor that had the highest lap count and lowest overall time
+2. The name of the competitor with the fastest (completed) lap and the time taken for it
+

@@ -1,0 +1,205 @@
+﻿@page "/agency/comments";
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject HttpClient Http;
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Navigations
+@inject IJSRuntime jsRunTime
+@using Syncfusion.Blazor.Popups
+@using Microsoft.JSInterop
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+
+<div class="top-entry-area client_dashboard">
+    <div class="tab-pane">
+        <div class="comment-tabs">
+            <SfGrid @ref="sfGrid" DataSource="@filteredComments" AllowPaging="true" AllowSorting="true">
+                <GridPageSettings PageSize="6" PageSizes="true"></GridPageSettings>
+                <SfToolbar>
+                    <ToolbarItems>
+                        <ToolbarItem>
+                            <Template>
+                                <SfCheckBox @bind-Checked="readComment" @onchange="@OnCheckBoxValueChange">Show Unread Only</SfCheckBox>
+                            </Template>
+                        </ToolbarItem>
+                        <ToolbarItem Type="ItemType.Input" Align="Syncfusion.Blazor.Navigations.ItemAlign.Right">
+                            <Template>
+                                <SfTextBox ValueChange="SearchValueChange" Placeholder="Search"></SfTextBox>
+                                <span class="e-search-icon e-icons" />
+                            </Template>
+                        </ToolbarItem>
+                    </ToolbarItems>
+                </SfToolbar>
+                <GridEvents OnRecordClick="RecordClickHandler" TValue="GetAgenyCommentResponseModel"></GridEvents>
+                <GridColumns>
+                    <GridColumn Field="@nameof(GetAgenyCommentResponseModel.CommentDate)" HeaderText="Date/Time" TextAlign="TextAlign.Left" Format="MM/dd/yyyy hh:mm tt" Type="ColumnType.Date" Width="120"></GridColumn>
+                    <GridColumn Field="@nameof(GetAgenyCommentResponseModel.NurseName)" HeaderText="Nurse" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+                    <GridColumn Field="@nameof(GetAgenyCommentResponseModel.ClientName)" HeaderText="Client" TextAlign="TextAlign.Left" Width="120"></GridColumn>
+                    <GridColumn HeaderText="Urgent" TextAlign="TextAlign.Left" Width="40">
+                        <Template Context="CommentContext">
+                            @{
+                                var comment = (CommentContext as GetAgenyCommentResponseModel);
+                                <SfCheckBox @bind-Checked="comment.IsUrgent" Disabled="true"></SfCheckBox>
+                            }
+                        </Template>
+                    </GridColumn>
+                </GridColumns>
+            </SfGrid>
+        </div>
+
+        @if (isResponseView)
+        {
+            <EditForm class="agency-notes-box" Model="model" OnValidSubmit="SendAgencyResponse">
+                <DataAnnotationsValidator />
+                <div class="row">
+                    <div class="col-md-6">
+                        <label><strong>Nurse Comment</strong></label>
+                        <SfTextBox Multiline="true" @bind-Value="nurseComment" Enabled="false"></SfTextBox>
+                    </div>
+                    <div class="col-md-6">
+                        <label><strong>Agency Response</strong></label>
+                        <SfTextBox Multiline="true" @bind-Value="model.AgencyResponse"></SfTextBox>
+                        <ValidationMessage For="@(() => model.AgencyResponse)" />
+                    </div>
+                    <div class="col-md-12 text-right">
+                        @if (isUpdate)
+                        {
+                            <SfButton class="btn-theme effect btn-md req_btn comment-upbtn">Update Response</SfButton>
+                        }
+                        else
+                        {
+                            <SfButton class="btn-theme effect btn-md req_btn comment-upbtn">Send Response</SfButton>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        }
+
+    </div>
+</div>
+
+@code{
+    SfGrid<GetAgenyCommentResponseModel> sfGrid;
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    string nurseComment = string.Empty;
+    List<GetAgenyCommentResponseModel> comments = new List<GetAgenyCommentResponseModel>();
+    List<GetAgenyCommentResponseModel> filteredComments = new List<GetAgenyCommentResponseModel>();
+    bool isResponseView = false;
+    bool isUpdate = false;
+    bool readComment = false;
+    AgencyResponseRequestModel model = new AgencyResponseRequestModel();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData != null)
+            {
+                await GetComments();
+            }
+            else
+            {
+                navigation.NavigateTo("agency/sign-in");
+            }
+        }
+    }
+
+    public async Task GetComments()
+    {
+        var commentsResponseMessage = await Http.GetAsync(wsp.Path + $"NurseComment/GetCommmentsForAgency?employerId={agencyData.UserDetails.UserId}");
+        var commentsResponse = commentsResponseMessage.Content.ReadAsStringAsync().Result;
+        comments = (JsonConvert.DeserializeObject<Response<List<GetAgenyCommentResponseModel>>>(commentsResponse)).Data;
+        if (readComment)
+        {
+            filteredComments = comments.Where(x => x.IsRead == false).ToList();
+        }
+        else
+        {
+            filteredComments = comments;
+        }
+        StateHasChanged();
+    }
+
+    public async Task RecordClickHandler(RecordClickEventArgs<GetAgenyCommentResponseModel> args)
+    {
+        if (!args.RowData.IsRead)
+        {
+            var responseMessage = await Http.GetAsync(wsp.Path + $"NurseComment/ReadNurseComment?nurseCommentId={args.RowData.NurseCommentId}");
+            var response = responseMessage.Content.ReadAsStringAsync().Result;
+            var result = (JsonConvert.DeserializeObject<Response<bool>>(response));
+            if (result == null || !result.Data)
+            {
+                toastService.ShowError("Something went wrong");
+                return;
+            }
+        }
+
+        model.NurseCommentId = args.RowData.NurseCommentId;
+        model.AgencyResponse = args.RowData.AgencyResponse;
+        nurseComment = args.RowData.Comment;
+        isUpdate = args.RowData.ResponseDate == null ? false : true;
+        isResponseView = true;
+    }
+
+    public void OnCheckBoxValueChange(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (Convert.ToBoolean(args.Value))
+        {
+            filteredComments = comments.Where(x => x.IsRead == false).ToList();
+        }
+        else
+        {
+            filteredComments = comments;
+        }
+        StateHasChanged();
+    }
+
+    public async Task SearchValueChange(Syncfusion.Blazor.Inputs.ChangedEventArgs args)
+    {
+        await sfGrid.Search(args.Value);
+    }
+
+    public async Task SendAgencyResponse()
+    {
+        try
+        {
+            var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "NurseComment/UpdateAgencyResponse", model);
+            var response = responseMessage.Content.ReadAsStringAsync().Result;
+            var result = (JsonConvert.DeserializeObject<Response<bool>>(response));
+            if (result != null)
+            {
+                if (result.Data)
+                {
+                    toastService.ShowSuccess(result.Message);
+                    await GetComments();
+                    isResponseView = false;
+                }
+                else
+                {
+                    toastService.ShowError(result.Message);
+                }
+            }
+            else
+            {
+                toastService.ShowError("Something went wrong");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError(ex.Message);
+        }
+    }
+
+}

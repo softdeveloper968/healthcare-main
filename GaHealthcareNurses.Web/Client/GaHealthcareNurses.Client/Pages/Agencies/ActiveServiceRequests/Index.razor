@@ -1,0 +1,139 @@
+﻿@page "/agency/service-requests";
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService toastService
+@inject NavigationManager navigation
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@inject HttpClient Http;
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@using Newtonsoft.Json;
+@inject IJSRuntime jsRunTime
+@using Microsoft.JSInterop
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Buttons
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+
+<div class="top-entry-area client_dashboard">
+    <div class="tab-content tab-content-info">
+        <div id="tab6" class="tab-pane fade active in ">
+            <SfGrid DataSource="@activeServiceRequests" AllowPaging="true">
+                <GridTemplates>
+                    <DetailTemplate>
+                        @{
+                            var serviceRequest = (context as GetActiveServiceRequestsResponseModel);
+                            <SfGrid DataSource="serviceRequest.TaskList" Query="@(new Query().Where("JobId", "equal", serviceRequest.JobId))" AllowPaging="true">
+                                <GridColumns>
+                                    <GridColumn Field="@nameof(GetTaskListResponseModel.TaskName)" HeaderText="Task Name" Width="110"> </GridColumn>
+                                    <GridColumn Field="@nameof(GetTaskListResponseModel.Date)" Format="d" Type="ColumnType.Date" HeaderText="Date" Width="110"> </GridColumn>
+                                    <GridColumn HeaderText="Task Status" Width="100" TextAlign="TextAlign.Left">
+                                        <Template Context="TaskListContext">
+                                            @{
+                                                var task = (TaskListContext as GetTaskListResponseModel);
+
+                                            }
+                                            @if (task.TaskStatus == true)
+                                            {
+                                                <span>Completed</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Pending</span>
+                                            }
+                                        </Template>
+                                    </GridColumn>
+                                    @if (serviceRequest.TaskList.ToList().Count > 0)
+                                    {
+                                        <GridColumn CustomAttributes="@(new Dictionary<string, object>(){ { "class", "Clear_Task" }})" Width="110">
+                                            <HeaderTemplate Context="Header">
+                                                <div>
+                                                    <SfButton @onclick="() => ClearTaskList(serviceRequest.JobId)">Clear Task List</SfButton>
+                                                </div>
+                                            </HeaderTemplate>
+                                        </GridColumn>
+                                    }
+                                </GridColumns>
+                            </SfGrid>
+                        }
+                    </DetailTemplate>
+                </GridTemplates>
+                <GridColumns>
+                    <GridColumn Field="@nameof(GetActiveServiceRequestsResponseModel.ServiceRequest)" HeaderText="Service Request" Width="110"> </GridColumn>
+                    <GridColumn Field="@nameof(GetActiveServiceRequestsResponseModel.CareRecipientName)" HeaderText="Care Recipient" Width="110"></GridColumn>
+                    <GridColumn Field="@nameof(GetActiveServiceRequestsResponseModel.CityName)" HeaderText="Location" Width="110"></GridColumn>
+                </GridColumns>
+            </SfGrid>
+        </div>
+    </div>
+</div>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code{
+    List<GetActiveServiceRequestsResponseModel> activeServiceRequests = new List<GetActiveServiceRequestsResponseModel>();
+    List<JobApply> hiredNurse = new List<JobApply>();
+    List<TaskList> taskListForNurse = new List<TaskList>();
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    bool isLoading = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+            if (agencyData != null)
+            {
+                await GetAciveServiceRequests();
+            }
+            else
+            {
+                navigation.NavigateTo("agency/sign-in");
+            }
+        }
+    }
+
+    public async Task GetAciveServiceRequests()
+    {
+        isLoading = true;
+        var hiredAgenciesResponseMessage = await Http.GetAsync(wsp.Path + $"JobApplyForEmployer/GetActiveServiceRequests?employerId={agencyData.UserDetails.UserId}");
+        var hiredAgenciesResponse = hiredAgenciesResponseMessage.Content.ReadAsStringAsync().Result;
+        activeServiceRequests = (JsonConvert.DeserializeObject<Response<List<GetActiveServiceRequestsResponseModel>>>(hiredAgenciesResponse)).Data;
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task NurseSelected(RowSelectEventArgs<JobApplyForAgency> Args)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"JobApply/GetByJobIdAndStatusId?jobId={Args.Data.JobId}&statusId={1}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        hiredNurse = (JsonConvert.DeserializeObject<Response<List<JobApply>>>(response)).Data;
+    }
+
+    public async Task TaskListSelected(RowSelectEventArgs<JobApply> Args)
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + $"TaskList/GetByJobIdAndNurseId?jobId={Args.Data.JobId}&nurseId={Args.Data.NurseId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        taskListForNurse = (JsonConvert.DeserializeObject<Response<List<TaskList>>>(response)).Data;
+    }
+
+    public async Task ClearTaskList(int jobId)
+    {
+        isLoading = true;
+        var responseMessage = await Http.DeleteAsync(wsp.Path + $"TaskList/Delete?id={jobId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await GetAciveServiceRequests();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+}

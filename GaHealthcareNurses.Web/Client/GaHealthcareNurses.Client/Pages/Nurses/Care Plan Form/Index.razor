@@ -1,0 +1,16 @@
+﻿@page "/nurse/care-plan/{id:int}/{view:bool}"
+@layout GaHealthcareNurses.Client.Shared.NurseLayout
+@using GaHealthcareNurses.Client.Common_Components
+@using GaHealthcareNurses.Entity.Common
+
+<CarePlanForm Id="Id" View="View" Role="@UserRoles.Nurse.ToString()"></CarePlanForm>
+
+@code {
+    bool isLoading = false;
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public bool View { get; set; }
+}
+
+

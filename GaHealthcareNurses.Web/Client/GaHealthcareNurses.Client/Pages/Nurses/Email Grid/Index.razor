@@ -1,0 +1,167 @@
+﻿@page "/nurse/inbox"
+@layout NurseLayout
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.Inputs
+@using GaHealthcareNurses.Entity.ViewModels;
+@using Newtonsoft.Json
+@using GaHealthcareNurses.Entity.Models
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IToastService toastService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<div class="nurseMessages_sec">
+    <div class="summaries_data">
+        <SfGrid DataSource="nurseMessages" AllowPaging="true" AllowSorting="true" Toolbar="@(new List<string>() { "Search" })">
+            <GridPageSettings PageSize="6" PageSizes="true"></GridPageSettings>
+            <GridEvents OnRecordClick="RecordClickHandler" TValue="GetNurseMessagesResponseModel"></GridEvents>
+            <GridColumns>
+                <GridColumn Field="@nameof(GetNurseMessagesResponseModel.Subject)" Width="100" HeaderText="Subject" TextAlign="TextAlign.Left"></GridColumn>
+                <GridColumn Field="@nameof(GetNurseMessagesResponseModel.CareRecipient)" Width="70" HeaderText="Care Recipient" TextAlign="TextAlign.Left"></GridColumn>
+                <GridColumn Field="@nameof(GetNurseMessagesResponseModel.SentDate)" Width="70" HeaderText="Received" TextAlign="TextAlign.Left" Type="ColumnType.Date" Format="d"></GridColumn>
+                <GridColumn Field="@nameof(GetNurseMessagesResponseModel.Agency)" Width="80" HeaderText="Sent By" TextAlign="TextAlign.Left"></GridColumn>
+                <GridColumn Width="20" TextAlign="TextAlign.Right" CustomAttributes="@(new Dictionary<string, object>(){ { "class", "actions_btns" }})">
+                    <Template>
+                        @{
+                            var message = (context as GetNurseMessagesResponseModel);
+                            <div class="dropdown text-right">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></a>
+                                <ul class="dropdown-menu animated">
+                                    <li><a href="javascript:void(0)" @onclick="() => ReadMessage(message.Id, true)"><i class="fa fa-envelope"></i> Mark As Read</a></li>
+                                    <li><a href="javascript:void(0)" @onclick="() => ReadMessage(message.Id, false)"><i class="fa fa-envelope"></i> Mark As Unread</a></li>
+                                    <li><a href="javascript:void(0)" @onclick="() => DeleteMessageConfirmation(message.Id)"><i class="fas fa-trash-alt"></i> Delete</a></li>
+                                </ul>
+                            </div>
+                        }
+                    </Template>
+                </GridColumn>
+            </GridColumns>
+        </SfGrid>
+    </div>
+    @if (isMessageView)
+    {
+        <div class="skilled_nurse_sec">
+            <fieldset>
+                <legend>Message</legend>
+                <SfTextBox @bind-Value="message" Multiline="true" Enabled="false"></SfTextBox>
+            </fieldset>
+        </div>
+    }
+</div>
+
+
+
+
+<SfDialog @ref="deleteMessageDialog" Width="500px" Visible="false" ShowCloseIcon="true" IsModal="true">
+    <DialogEvents Closed="CloseDeleteMessageDialog"></DialogEvents>
+    <DialogTemplates>
+        <Header> Delete Message</Header>
+        <Content> Are you sure you want to delete this message?</Content>
+    </DialogTemplates>
+    <DialogButtons>
+        <DialogButton OnClick="DeleteMessage" Content="Yes" IsPrimary="true"></DialogButton>
+        <DialogButton OnClick="CloseDeleteMessageDialog" Content="No"></DialogButton>
+    </DialogButtons>
+</SfDialog>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code{
+    LoginViewModel<UserDetails> nurseData = new LoginViewModel<UserDetails>();
+    List<GetNurseMessagesResponseModel> nurseMessages = new List<GetNurseMessagesResponseModel>();
+    bool isLoading = false;
+    bool isMessageView = false;
+    string message = string.Empty;
+    ReadMessageViewModel model = new ReadMessageViewModel();
+    SfDialog deleteMessageDialog;
+    int messageToDelete;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            nurseData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("nurseData");
+            if (nurseData == null)
+            {
+                navigation.NavigateTo("nurse/sign-in");
+            }
+            else
+            {
+                await GetNurseMessages();
+            }
+        }
+    }
+
+    public async Task GetNurseMessages()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"NurseInbox/GetNurseMessages?nurseId={nurseData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        nurseMessages = (JsonConvert.DeserializeObject<Response<List<GetNurseMessagesResponseModel>>>(response)).Data.OrderByDescending(x => x.Id).ToList();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task ReadMessage(int id, bool isRead)
+    {
+        isLoading = true;
+        model.Id = id;
+        model.IsRead = isRead;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "NurseInbox/ReadMessage", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await GetNurseMessages();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async Task DeleteMessage()
+    {
+        CloseDeleteMessageDialog();
+        isLoading = true;
+        var responseMessage = await Http.DeleteAsync(wsp.Path + $"NurseInbox/DeleteMessage?id={messageToDelete}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await GetNurseMessages();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public void DeleteMessageConfirmation(int id)
+    {
+        messageToDelete = id;
+        deleteMessageDialog.Show();
+        StateHasChanged();
+    }
+
+    public void CloseDeleteMessageDialog()
+    {
+        deleteMessageDialog.Hide();
+    }
+
+    public void RecordClickHandler(RecordClickEventArgs<GetNurseMessagesResponseModel> args)
+    {
+        message = args.RowData.Message;
+        isMessageView = true;
+        StateHasChanged();
+    }
+}

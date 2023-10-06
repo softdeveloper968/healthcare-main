@@ -1,0 +1,199 @@
+﻿@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Spinner
+@using GaHealthcareNurses.Entity.ViewModels
+@using GaHealthcareNurses.Entity.Common
+@using Newtonsoft.Json
+@using GaHealthcareNurses.Entity.Models
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IToastService toastService
+
+<div class="summaries_data">
+    <SfGrid DataSource="DataSource" AllowPaging="true" AllowSorting="true" Toolbar="@(new List<string>() { "Search" })">
+        <GridColumns>
+            <GridColumn Field="@nameof(GetAdultAssessmentListResponseModel.CareRecipient)" Width="78" HeaderText="Care Recipient" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetAdultAssessmentListResponseModel.ServiceProvided)" Width="85" HeaderText="Service Provided" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetAdultAssessmentListResponseModel.StartDate)" Width="92" HeaderText="Start Date" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetAdultAssessmentListResponseModel.EndDate)" Width="92" HeaderText="End Date" TextAlign="TextAlign.Left"></GridColumn>
+            <GridColumn Field="@nameof(GetAdultAssessmentListResponseModel.Location)" Width="100" HeaderText="Location" TextAlign="TextAlign.Left"></GridColumn>
+            @if (UserRole != UserRoles.Employer.ToString())
+            {
+                <GridColumn Field="@nameof(GetAdultAssessmentListResponseModel.Agency)" Width="60" HeaderText="Agency" TextAlign="TextAlign.Left"></GridColumn>
+
+            }
+            @if (UserRole != UserRoles.Nurse.ToString())
+            {
+                <GridColumn Field="@nameof(GetAdultAssessmentListResponseModel.CareGiver)" Width="60" HeaderText="Care Giver" TextAlign="TextAlign.Left"></GridColumn>
+            }
+            <GridColumn Width="20" TextAlign="TextAlign.Right" CustomAttributes="@(new Dictionary<string, object>(){ { "class", "actions_btns" }})">
+                <Template>
+                    @{
+                        var assessment = (context as GetAdultAssessmentListResponseModel);
+
+                        <div class="dropdown text-right">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></a>
+                            <ul class="dropdown-menu animated">
+                                <li><a href="javascript:void(0)" @onclick="()=>UpdateAssessment(assessment.Id)"><i class="far fa-edit"></i> Update</a></li>
+                                @if (UserRole == UserRoles.Employer.ToString())
+                                {
+                                    <li><a href="javascript:void(0)" @onclick="()=>DeleteAssessmentConfirmation(assessment.Id)"><i class="fas fa-trash-alt"></i> Delete</a></li>
+                                    if (string.IsNullOrEmpty(assessment.CareGiver))
+                                    {
+                                        <li><a href="javascript:void(0)" @onclick="()=>OpenAssignAssessmentDialog(assessment.Id)"><i class="fa fa-tasks"></i> Assign</a></li>
+                                    }
+                                }
+                            </ul>
+                        </div>
+                    }
+                </Template>
+            </GridColumn>
+        </GridColumns>
+    </SfGrid>
+</div>
+
+<SfDialog @ref="deleteAssessmentDialog" Width="500px" Visible="false" ShowCloseIcon="true" IsModal="true">
+    <DialogEvents Closed="CloseDeleteAssessmentDialog"></DialogEvents>
+    <DialogTemplates>
+        <Header> Delete Assessment</Header>
+        <Content> Are you sure you want to delete this assessment?</Content>
+    </DialogTemplates>
+    <DialogButtons>
+        <DialogButton OnClick="DeleteAssessment" Content="Yes" IsPrimary="true"></DialogButton>
+        <DialogButton OnClick="CloseDeleteAssessmentDialog" Content="No"></DialogButton>
+    </DialogButtons>
+</SfDialog>
+
+<SfDialog @ref="assignAssessmentDialog" Width="500px" Visible="false" ShowCloseIcon="true" IsModal="true">
+    <DialogEvents Closed="CloseAssignAssessmentDialog"></DialogEvents>
+    <DialogTemplates>
+        <Header> Assign Care Plan</Header>
+        <Content>
+            <EditForm Model="model" OnValidSubmit="AssignAssessment">
+                <DataAnnotationsValidator />
+                <div class="form-group">
+                    <SfDropDownList class="form-control" @bind-Value="model.NurseId" TValue="string" TItem="GetAllNursesResponseModel" Placeholder="Select a Nurse" AllowFiltering="true" DataSource="@nurses">
+                        <DropDownListFieldSettings Text="NurseName" Value="NurseId"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                    <ValidationMessage For="@(() => model.NurseId)" />
+                </div>
+                <SfButton type="submit">Assign</SfButton>
+            </EditForm>
+        </Content>
+    </DialogTemplates>
+    <DialogAnimationSettings Effect="@DialogEffect.Zoom"></DialogAnimationSettings>
+</SfDialog>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+@code {
+    [Parameter]
+    public List<GetAdultAssessmentListResponseModel> DataSource { get; set; }
+    [Parameter]
+    public string UserRole { get; set; }
+    [Parameter]
+    public EventCallback<int> OnAssessmentDeleted { get; set; }
+    public bool IsView { get; set; } = false;
+    SfDialog deleteAssessmentDialog;
+    SfDialog assignAssessmentDialog;
+    int assessmentToDelete;
+    AssignAdultAssessmentViewModel model = new AssignAdultAssessmentViewModel();
+    List<GetAllNursesResponseModel> nurses = new List<GetAllNursesResponseModel>();
+    bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var responseMessage = await Http.GetAsync(wsp.Path + "Nurses/GetAllNursesIds");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        nurses = (JsonConvert.DeserializeObject<Response<List<GetAllNursesResponseModel>>>(response)).Data;
+    }
+
+    public void UpdateAssessment(int id)
+    {
+        if (UserRole == UserRoles.Nurse.ToString())
+        {
+            navigation.NavigateTo($"nurse/assessment/{id}/{IsView}");
+        }
+        else
+        {
+            navigation.NavigateTo($"agency/assessment/{id}/{IsView}");
+        }
+    }
+
+    //public void ViewCarePlan(int id)
+    //{
+    //    IsView = true;
+    //    if (UserRole == UserRoles.Nurse.ToString())
+    //    {
+    //        navigation.NavigateTo($"nurse/care-plan/{id}/{IsView}");
+    //    }
+    //    else
+    //    {
+    //        navigation.NavigateTo($"agency/care-plan/{id}/{IsView}");
+    //    }
+    //}
+
+    public async Task DeleteAssessment()
+    {
+        CloseDeleteAssessmentDialog();
+        var responseMessage = await Http.DeleteAsync(wsp.Path + $"AdultAssessment/DeleteAssessment?id={assessmentToDelete}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnAssessmentDeleted.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+    }
+
+    public void DeleteAssessmentConfirmation(int id)
+    {
+        assessmentToDelete = id;
+        deleteAssessmentDialog.Show();
+        StateHasChanged();
+    }
+
+    public void CloseDeleteAssessmentDialog()
+    {
+        deleteAssessmentDialog.Hide();
+    }
+
+    public void OpenAssignAssessmentDialog(int id)
+    {
+        model = new AssignAdultAssessmentViewModel();
+        model.Id = id;
+        assignAssessmentDialog.Show();
+    }
+
+    public void CloseAssignAssessmentDialog()
+    {
+        assignAssessmentDialog.Hide();
+    }
+
+    public async Task AssignAssessment()
+    {
+        CloseAssignAssessmentDialog();
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "AdultAssessment/AssignAssessment", model);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            await OnAssessmentDeleted.InvokeAsync();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "6564031313",
+    "firebase_url": "https://georgiahealthcarenurses-default-rtdb.firebaseio.com",
+    "project_id": "georgiahealthcarenurses",
+    "storage_bucket": "georgiahealthcarenurses.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6564031313:android:65071f2c0dafd94aaac170",
+        "android_client_info": {
+          "package_name": "com.gahealthcarenurses.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "6564031313-to6imcgktnd5mpmo66kqe0fb8raib79b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyGoutJK22S_6uMat6QcI0IjjuEg4cVDI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "6564031313-to6imcgktnd5mpmo66kqe0fb8raib79b.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "6564031313-0vrrqud8bq0r8isulksrvavl4c0grodp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gahealthcarenurses.dev"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

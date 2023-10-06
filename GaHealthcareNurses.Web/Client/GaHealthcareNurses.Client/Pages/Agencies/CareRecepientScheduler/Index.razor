@@ -1,0 +1,114 @@
+﻿@page "/agency/scheduler"
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@using GaHealthcareNurses.Entity.Models
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Schedule
+@using Newtonsoft.Json
+@using GaHealthcareNurses.Entity.ViewModels
+@using System.Collections.ObjectModel;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject NavigationManager navigation
+@inject Microsoft.AspNetCore.Components.NavigationManager UriHelper
+@inject IJSRuntime jsRunTime
+
+<div>
+    <div class="form_input mb_10">
+        <div class="form_input-bx">
+            <label class="no_wrap">Care Recipient:</label>
+            <div class="dropdown">
+                <SfDropDownList EnableVirtualization="true" FloatLabelType="@FloatLabelType.Auto" TValue="int" TItem="GetServiceRequestListResponseModel" AllowFiltering="true" DataSource="@serviceRequests">
+                    <DropDownListEvents TItem="GetServiceRequestListResponseModel" TValue="int" ValueChange="OnCareRecepientChange"></DropDownListEvents>
+                    <DropDownListFieldSettings Text="CareRecipient" Value="JobId"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </div>
+        </div>
+    </div>
+    <div>
+        <SfSchedule @ref="sfSchedule" TValue="AppointmentData" Height="650px" @bind-SelectedDate="@CurrentDate">
+            <ScheduleEventSettings DataSource="@observableData" AllowAdding="false" AllowDeleting="false"></ScheduleEventSettings>
+            <ScheduleViews>
+                <ScheduleView Option="View.Month"></ScheduleView>
+            </ScheduleViews>
+        </SfSchedule>
+    </div>
+</div>
+
+@code{
+    LoginViewModel<UserDetails> agencyData = new LoginViewModel<UserDetails>();
+    List<GetServiceRequestListResponseModel> serviceRequests = new List<GetServiceRequestListResponseModel>();
+    bool isLoading = false;
+    SfSchedule<AppointmentData> ScheduleRef;
+    DateTime CurrentDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 10, 0, 0);
+    //DateTime currentDate = new DateTime();
+    List<AppointmentData> DataSource = new List<AppointmentData>();
+
+    public class AppointmentData
+    {
+        public int Id { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public string Description { get; set; }
+    }
+
+    private ObservableCollection<AppointmentData> observableData { get; set; }
+    SfSchedule<AppointmentData> sfSchedule;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        await GetUserDetails();
+        StateHasChanged();
+    }
+
+    protected async Task GetUserDetails()
+    {
+        agencyData = await localStorage.GetItemAsync<LoginViewModel<UserDetails>>("agencyData");
+        if (agencyData != null)
+        {
+            await GetAgencyServiceRequests();
+        }
+    }
+
+    public async Task GetAgencyServiceRequests()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"Job/GetJobsByEmployerId?employerId={agencyData.UserDetails.UserId}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        serviceRequests = (JsonConvert.DeserializeObject<Response<List<GetServiceRequestListResponseModel>>>(response)).Data.OrderByDescending(x => x.JobId).ToList();
+        isLoading = false;
+    }
+
+    public void OnCareRecepientChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<int, GetServiceRequestListResponseModel> args)
+    {
+        if (args != null)
+        {
+            var id = args.ItemData.JobId;
+            isLoading = true;
+            //var currentYear = DateTime.Today.Year;
+            DateTime StartTime1 = Convert.ToDateTime(args.ItemData.StartDate);
+            CurrentDate = StartTime1;
+            DateTime EndTime1 = Convert.ToDateTime(args.ItemData.EndDate);
+            string[] dayList = { args.ItemData.Frequency };
+            for (var dt = StartTime1; dt <= EndTime1; dt = dt.AddDays(1))
+            {
+                if (dayList.ToList().FirstOrDefault().Contains(Convert.ToString(dt.DayOfWeek)))
+                {
+                    DataSource.Add(new AppointmentData()
+                    {
+                        Id = args.ItemData.JobId,
+                        StartTime = dt,
+                        EndTime = dt
+                    });
+                }
+            }
+
+            observableData = new ObservableCollection<AppointmentData>(DataSource);
+        }
+
+    }
+}

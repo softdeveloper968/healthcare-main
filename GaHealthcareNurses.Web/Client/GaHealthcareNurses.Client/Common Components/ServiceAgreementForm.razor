@@ -1,0 +1,227 @@
+﻿@page "/service-agreement/{id:int}"
+@layout GaHealthcareNurses.Client.Shared.AgencyLayout
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Calendars
+@using GaHealthcareNurses.Entity.ViewModels;
+@using GaHealthcareNurses.Entity.Models;
+@using Newtonsoft.Json
+@using Syncfusion.Blazor.Spinner
+@inject NavigationManager navigation
+@inject HttpClient Http
+@inject GaHealthcareNurses.Client.NewFolder.WebServicePath wsp
+@inject IToastService toastService
+
+<EditForm Model="@serviceAgreementRequestModel" OnValidSubmit="UpdateServiceAssessment">
+    <DataAnnotationsValidator />
+    <div class="skilled_nurse_sec service_agrmnt">
+        <div class="row">
+            <div class="col-md-4"><label><b>Client Name:</b> @serviceAgreementRequestModel.ClientName </label></div>
+            <div class="col-md-4">
+                <div class="row inline_input">
+                    <div class="col-md-4">
+                        <label><b>Referred By:</b></label>
+                    </div>
+                    <div class="col-md-8 ">
+                        <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@serviceAgreementRequestModel.ReferredBy" />
+                        <ValidationMessage For="@(() => serviceAgreementRequestModel.ReferredBy)" />
+                    </div>
+                </div>
+              
+                
+            </div>
+            <div class="col-md-4">
+                <div class="row inline_input">
+                    <div class="col-md-4">
+                        <label><b>Referral Date:</b></label>
+                    </div>
+                    <div class="col-md-8 ">
+                        <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@serviceAgreementRequestModel.ReferredDate"></SfDatePicker>
+                        <ValidationMessage For="@(() => serviceAgreementRequestModel.ReferredDate)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div class="row field_margin">
+                <div class="col-md-4">
+
+                </div>
+                <div class="col-md-4">
+                     <div class="row inline_input">
+                         <div class="col-md-4">
+                             <label><b>Initial Date Of Contact:</b></label>
+                         </div>
+                         <div class="col-md-8 ">
+                             <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@serviceAgreementRequestModel.InitialDateOfContact"></SfDatePicker>
+                             <ValidationMessage For="@(() => serviceAgreementRequestModel.InitialDateOfContact)" />
+                         </div>
+                  </div>
+
+
+                </div>
+                <div class="col-md-4">
+                    <div class="row inline_input">
+                        <div class="col-md-4">
+                            <label><b>Start Of Care:</b></label>
+                        </div>
+                        <div class="col-md-8 startcare_mrg ">
+                            @Convert.ToDateTime(serviceAgreementRequestModel.StartDate).ToString("MM/dd/yyyy")
+                        </div>
+                    </div>
+                   
+                </div>
+            </div>
+        <div>
+            <label><b>Description Of Services Needed By The Client:</b> </label>
+            <p>@serviceAgreementRequestModel.DescriptionByClient</p>
+        </div>
+        <div class="row mb_10">
+            <div class="col-md-6">
+                <label><b>Services To Be Provided:</b> @serviceAgreementRequestModel.ServiceProvide</label>
+            </div>
+            <div class="col-md-6">
+                <label><b>Total Hours:</b> @serviceAgreementRequestModel.TotalHours</label>
+            </div>
+        </div>
+        <div class="row mb_10">
+            <div class="col-md-4"><label><b>Frequency:</b> @serviceAgreementRequestModel.Frequency</label></div>
+            <div class="col-md-2"><label><b>Start Date</b>: @Convert.ToDateTime(serviceAgreementRequestModel.StartDate).ToString("MM/dd/yyyy")</label></div>
+            <div class="col-md-2"><label><b>Start Time:</b> @Convert.ToDateTime(serviceAgreementRequestModel.StartDate).ToString("hh:mm:tt")</label></div>
+            <div class="col-md-2"><label><b>End Date:</b> @Convert.ToDateTime(serviceAgreementRequestModel.EndDate).ToString("MM/dd/yyyy")</label></div>
+            <div class="col-md-2"><label><b>End Time:</b> @Convert.ToDateTime(serviceAgreementRequestModel.EndDate).ToString("hh:mm:tt")</label></div>
+        </div>
+        <div class="row mb_10">
+            <div class="col-md-5">
+                <label><b>Services are paid by reimbursement to the provider through(Check all that apply):</b></label>
+            </div>
+            <div class="col-md-2">
+                <SfCheckBox Label="Medicaid" LabelPosition="LabelPosition.After" @bind-Checked="@serviceAgreementRequestModel.IsMedicaid"></SfCheckBox>
+            </div>
+            <div class="col-md-2">
+                <SfCheckBox Label="Insurance" LabelPosition="LabelPosition.After" @bind-Checked="@serviceAgreementRequestModel.IsInsurance"></SfCheckBox>
+            </div>
+            <div class="col-md-3">
+                <SfCheckBox Label="Private Pay" LabelPosition="LabelPosition.After" @bind-Checked="@serviceAgreementRequestModel.IsPrivatePay"></SfCheckBox>
+            </div>
+        </div>
+        <div class="row mb_10">
+            <div class="col-md-3">
+                <label><b>Charges For Services(hourly rate):</b> @serviceAgreementRequestModel.ChargesOfService</label>
+            </div>
+            <div class="col-md-3 d_flex">
+                <label class="no_wrap"><b>to be billed</b></label>
+                <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@serviceAgreementRequestModel.DateBilledOn"></SfDatePicker>
+                <ValidationMessage For="@(() => serviceAgreementRequestModel.DateBilledOn)" />
+            </div>
+            <div class="col-md-3 d_flex">
+                <label class="no_wrap"><b>and due by</b></label>
+                <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@serviceAgreementRequestModel.DateDueOn"></SfDatePicker>
+                <ValidationMessage For="@(() => serviceAgreementRequestModel.DateDueOn)" />
+            </div>
+        </div>
+        <div class="text-left sm_input">
+            Client agrees and covenants that for a period of 
+            <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceAgreementRequestModel.NoOfMonthAgreed" />
+            months following the terminations of this Agreement,whether such termination is voluntary or involuntary, 
+        </div>
+        <div>
+            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@serviceAgreementRequestModel.Condition1" />
+        </div>
+        <div class="text-left sm_input">
+           
+                If Undersigned or Client wishes to interrupt or terminate the Services provided under this agreement for any reason,Undersigned to give Provider at least
+                <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceAgreementRequestModel.LeastNoOfDays1" /> days advance notice,or if
+                <SfNumericTextBox Min="0" FloatLabelType="@FloatLabelType.Auto" @bind-Value="serviceAgreementRequestModel.LeastNoOfDays2" /> days advance notice is not possible under the circumtances,to provide notice as soon as possible.
+           
+        </div>
+        <div>
+            <SfTextBox FloatLabelType="@FloatLabelType.Auto" Type="InputType.Text" @bind-Value="@serviceAgreementRequestModel.Condition2" />
+        </div>
+        <div class="row text_margin ">
+            <div class="col-md-6"><SfCheckBox Label="Authorization for access to client's personal funds for home management." LabelPosition="LabelPosition.After" @bind-Checked="@serviceAgreementRequestModel.CanAccessPersonalFunds"></SfCheckBox></div>
+            <div class="col-md-6"><SfCheckBox Label="Authorization for access to client's personal vichle" LabelPosition="LabelPosition.After" @bind-Checked="@serviceAgreementRequestModel.CanAccessPersonalVichle"></SfCheckBox></div>
+        </div>
+        <div class="row mb_10">
+            <div class="col-md-6"><SfCheckBox Label="Private Pay" LabelPosition="LabelPosition.After" @bind-Checked="@serviceAgreementRequestModel.HasReceivedBillOfRights"></SfCheckBox></div>
+        </div>
+        <div>
+            <p>For information, questions,or complaints about services provided by <b> @serviceAgreementRequestModel.AgencyName</b> please call <b> @serviceAgreementRequestModel.AgencyPhoneNo</b></p>
+        </div>
+        <div>
+            <p>In the event there is a complaints or problem that we have been made aware of that cannot  be resolved,you may contact Healthcare Facility Regulations Division,</p>
+            <p>Health Care Section at 404-657-5850 or for  information call 404-657-1509.</p></div>
+        <div class="row">
+            <div class="col-md-6 inline_field">
+                <SfCheckBox Label="Signed by Client/Representative" LabelPosition="LabelPosition.After" @bind-Checked="@serviceAgreementRequestModel.IsSignedByClient"></SfCheckBox>
+                <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@serviceAgreementRequestModel.SignedByClient"></SfDatePicker>
+            </div>
+            <div class="col-md-6 inline_field">
+                <SfCheckBox Label="Signed by Agency/Representative" LabelPosition="LabelPosition.After" @bind-Checked="@serviceAgreementRequestModel.IsSignedByAgency"></SfCheckBox>
+                <SfDatePicker Placeholder="MM/DD/YYYY" ShowClearButton="true" @bind-Value="@serviceAgreementRequestModel.SignedByAgency"></SfDatePicker>
+            </div>
+        </div>
+        @if (!View)
+        {
+            <div class="ds_btns text_margin">
+                <button @onclick="NavigateToServiceAgreementGrid" type="button" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        }
+    </div>
+</EditForm>
+
+<SfSpinner Size="40" Type="SpinnerType.Bootstrap4" @bind-Visible="isLoading"></SfSpinner>
+
+
+@code {
+    ServiceAgreementRequestModel serviceAgreementRequestModel = new ServiceAgreementRequestModel();
+    [Parameter]
+    public int Id { get; set; }
+    bool isLoading = false;
+    [Parameter]
+    public bool View { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        var responseMessage = await Http.GetAsync(wsp.Path + $"ServiceAgreement/GetById?id={Id}");
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<ServiceAgreementRequestModel>>(response));
+        if (result.Status == "Success")
+        {
+            serviceAgreementRequestModel = result.Data;
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+            NavigateToServiceAgreementGrid();
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public void NavigateToServiceAgreementGrid()
+    {
+        navigation.NavigateTo("agency/service-agreements");
+    }
+
+    public async Task UpdateServiceAssessment()
+    {
+        isLoading = true;
+        var responseMessage = await Http.PostAsJsonAsync(wsp.Path + "ServiceAgreement/UpdateServiceAgreement", serviceAgreementRequestModel);
+        var response = responseMessage.Content.ReadAsStringAsync().Result;
+        var result = (JsonConvert.DeserializeObject<Response<string>>(response));
+        if (result.Status == "Success")
+        {
+            toastService.ShowSuccess(result.Message);
+            NavigateToServiceAgreementGrid();
+        }
+        else
+        {
+            toastService.ShowError(result.Message);
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+}
